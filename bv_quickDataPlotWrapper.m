@@ -8,5 +8,3 @@ cfg.viewmode    = 'vertical';
 cfg.blocksize   = 10;
 cfg.ylim        = [-mLimit mLimit];
 ft_databrowser(cfg, data);
-
-

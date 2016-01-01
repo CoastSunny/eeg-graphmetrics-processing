@@ -89,7 +89,7 @@ for iFreq = 1:length(freqLabel)
         saveas(gcf, [subjectdata.PATHS.FIGURES filesep picFilename])
         fprintf('done! \n')
         
-%         close all
+        close all
     end
     
 end

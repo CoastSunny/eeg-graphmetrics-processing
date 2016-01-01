@@ -4,45 +4,20 @@ method      = ft_getopt(cfg, 'method', 'runica');
 extended    = ft_getopt(cfg, 'extended', 0);
 saveData    = ft_getopt(cfg, 'saveData', 1);
 outputStr   = ft_getopt(cfg, 'outputStr', 'comp');
-inputFile   = ft_getopt(cfg, 'inputFile');
+inputStr    = ft_getopt(cfg, 'inputStr');
 currSubject = ft_getopt(cfg, 'currSubject');
 optionsFcn  = ft_getopt(cfg, 'optionsFcn');
 
-if isempty(currSubject)
-    error('Please give the subject folder name as cfg.currSubject')
-end
-if isempty(optionsFcn)
-    error(['Please give the path to your options file in cfg.optionsFcn, ' ...
-        'find a standard options file at setStandards.m'])
-end
-
-if nargin < 2 && isempty(inputFile)
-    error('No data input given and no cfg.inputFile given')
-elseif nargin == 2 && ~isempty(inputFile)
-    error('Both data input and cfg.inputFile given. Please choose one')
-end
-
-try 
+if nargin < 2
+    disp(currSubject)
+    
     eval(optionsFcn)
-catch
-    error('Options file not found')
-end
-
-try
-    load([PATHS.SUBJECTS filesep currSubject filesep 'Subject.mat'])
-catch
-    error('Subject.mat file not found')
-end
-
-disp(subjectdata.subjectName)
-
-if ~isempty(inputFile)
-    try
-        load(subjectdata.PATHS.(inputFile))
-    catch
-        errorStr = sprintf('%s not found', intputFile);
-        error(errorStr)
-    end
+    
+    subjectFolderPath = [PATHS.SUBJECTS filesep currSubject];
+    [subjectdata, data] = bv_check4data(subjectFolderPath, inputStr);
+    
+    subjectdata.cfgs.(outputStr) = cfg;
+    
 end
 
 subjectdata.cfgs.(outputStr) = cfg;

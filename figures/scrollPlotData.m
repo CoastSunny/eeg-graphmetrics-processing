@@ -4,10 +4,15 @@ badPartsMatrix  = ft_getopt(cfg, 'badPartsMatrix');
 horzLim         = ft_getopt(cfg, 'horzLim', 'full');
 scroll          = ft_getopt(cfg, 'scroll', 0);
 visible         = ft_getopt(cfg, 'visible', 'off');
+channel         = ft_getopt(cfg, 'channel', 'all');
 
 if strcmp(horzLim, 'full')
     horzLim = length([data.time{:}])/data.fsample - (1/data.fsample);
 end
+
+cfg =[];
+cfg.channel = channel;
+evalc('data = ft_selectdata(cfg, data);');
 
 openFigures     = findall(0,'type','figure');
 nrOpenFigures   = length(openFigures);

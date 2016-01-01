@@ -2,7 +2,7 @@
 %     'wpli_debiased_broadband','wpli_debiased_theta'};
 
 
-eval('setStandards')
+eval('setPaths')
 cd(PATHS.RESULTS)
 
 % resultStrs = {'coh_alpha_neighbRemoved', ...
@@ -13,10 +13,10 @@ cd(PATHS.RESULTS)
 %     'wpli_debiased_broadband','wpli_debiased_theta'};
 
 
-resultStrs = {'debiased_alpha'};
+resultStrs = {'within_alpha'};
 
 for i = 1:length(resultStrs)
-    calculateGraphMetrics(resultStrs{i}, 1, 'absolute')
+    calculateGraphMetrics(resultStrs{i}, 1, 'proportional')
 end
 
 graphMetricsStr = resultStrs;

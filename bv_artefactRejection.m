@@ -52,9 +52,9 @@ oldData = data;
 
 fprintf('\t redefining triallength to %s seconds ... ', num2str(triallength))
 cfg = [];
-cfg.length = triallength;
+cfg.length = 4;
 cfg.overlap = 0;
-evalc('data = ft_redefinetrial(cfg, data);');
+evalc('data = ft_redefinetrial(cfg, oldData);');
 fprintf('done! \n')
 
 fprintf('\t artefact calculation \n')
@@ -84,26 +84,20 @@ fprintf('done! \n')
 
 if strcmpi(showFigures, 'yes')
     
-    xScreenLength = 1;
-    yScreenLength = 1;
-    
-    if exist('WindowSize', 'file')
-        [xScreenSize, yScreenSize] = WindowSize(0);
-        set(0, 'units', 'pixels')
-        realScreenSize = get(0, 'ScreenSize');
-        xDiff = xScreenSize / realScreenSize(3);
-        xScreenLength = xScreenLength * xDiff;
-        yDiff = yScreenSize / realScreenSize(4);
-        yScreenLength = yScreenLength * yDiff;
+    if exist('findCoords', 'file')
+        [xScreenLength, yScreenLength] = findCoords;
+    else
+        xScreenLength = 1;
+        yScreenLength = 1;
     end
 
     fprintf('\t creating and plotting figures for artefacts \n')
     fprintf('\t\t creating frequency spectrum plot ...')
     
-    figure; plot(freq.freq, log10(abs(squeeze(mean(freq.(field2use)))))', 'LineWidth', 2)
+    figure; plot(freq.freq, log10(abs(squeeze(nanmean(freq.(field2use)))))', 'LineWidth', 2)
     legend(data.label)
     set(gca, 'YLim', [-4 Inf])
-    set(gcf, 'units', 'normalized', 'Position', [0 0 xScreenLength/2 yScreenLength])
+%     set(gcf, 'units', 'normalized', 'Position', [0 0 xScreenLength/2 yScreenLength])
     fprintf('done! \n')
     
     if strcmpi(saveFigures, 'yes')
@@ -120,26 +114,25 @@ if strcmpi(showFigures, 'yes')
     cfg = [];
     cfg.badPartsMatrix  = artefactdef.badPartsMatrix;
     cfg.horzLim         = 'full';
-    cfg.triallength     = 1;
     cfg.scroll          = 0;
     cfg.visible         = 'on';
     cfg.triallength     = 5;
     scrollPlot          = scrollPlotData(cfg, data);
     fprintf('done! \n')
-    set(gcf, 'units', 'normalized', 'Position', [xScreenLength/2 yScreenLength xScreenLength/2 yScreenLength])
+%     set(gcf, 'units', 'normalized', 'Position', [xScreenLength/2 yScreenLength xScreenLength/2 yScreenLength])
 
 % 
 %     cfg = [];
 %     cfg.viewmode = 'vertical';
 %     ft_databrowser(cfg, oldData);
 %         
-    fprintf('\t please press SPACE to continue ... ')
-    pause
-    fprintf('done! \n')
+%     fprintf('\t please press SPACE to continue ... ')
+%     pause
+%     fprintf('done! \n')
     
     if strcmpi(saveFigures,'yes')
         fprintf('\t\t\t saving ... ')
-        set(gcf, 'Position', get(0,'Screensize'));
+%         set(gcf, 'Position', get(0,'Screensize'));
         saveas(gcf, [PATHS.FIGURES filesep currSubject '_dataDirty.png'])
         fprintf('done! \n')
         close all

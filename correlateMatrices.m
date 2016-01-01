@@ -11,5 +11,5 @@ if (sum(isnan(squareform(W1))) == numel(squareform(W1))) || (sum(isnan(squarefor
     R = NaN;
     P = NaN;
 else
-    [R, P] = corr(squareform(W1)', squareform(W2)','type', 'Pearson' ,'rows', 'pairwise');
+    [R, P] = corr(squareform(W1)', squareform(W2)','rows', 'pairwise');
 end

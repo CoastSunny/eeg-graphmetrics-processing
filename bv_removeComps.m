@@ -1,11 +1,19 @@
 function data = bv_removeComps(cfg, data, comp)
 
-currSubject = ft_getopt(cfg, 'currSubject');
-optionsFcn  = ft_getopt(cfg, 'optionsFcn');
-saveData    = ft_getopt(cfg, 'saveData');
-outputStr   = ft_getopt(cfg, 'outputStr');
-dataStr     = ft_getopt(cfg, 'dataStr');
-compStr     = ft_getopt(cfg, 'compStr');
+currSubject         = ft_getopt(cfg, 'currSubject');
+optionsFcn          = ft_getopt(cfg, 'optionsFcn');
+saveData            = ft_getopt(cfg, 'saveData');
+outputStr           = ft_getopt(cfg, 'outputStr');
+dataStr             = ft_getopt(cfg, 'dataStr');
+compStr             = ft_getopt(cfg, 'compStr');
+automaticRemoval    = ft_getopt(cfg, 'automaticRemoval');
+saveFigure          = ft_getopt(cfg, 'saveFigure');
+
+if strcmpi(automaticRemoval, 'yes')
+    automaticFlag = 1;
+else
+    automaticFlag = 0;
+end
 
 if nargin < 3
     
@@ -28,18 +36,6 @@ end
 
 oldcfg = cfg;
 
-fprintf('\t preparing layout...')
-cfg = [];
-cfg.channel  = data.label;
-cfg.layout   = 'EEG1010';
-cfg.feedback = 'no';
-cfg.skipcomnt  = 'yes';
-cfg.skipscale  = 'yes';
-evalc('lay = ft_prepare_layout(cfg);');
-fprintf('done! \n')
-
-fprintf('\t showing components ... \n')
-
 xScreenLength = 1;
 yScreenLength = 1;
 
@@ -53,44 +49,109 @@ if exist('WindowSize', 'file')
     yScreenLength = yScreenLength * yDiff;
 end
 
-cfg = [];
-cfg.viewmode = 'component';
-cfg.layout = lay;
-cfg.ylim = [-2000 2000];
-cfg.blocksize = 30;
-evalc('ft_databrowser(cfg, comp)');
-set(gcf, 'units', 'normalized', 'Position', [0 0 xScreenLength/2 yScreenLength])
+if automaticFlag
+    fprintf('\t automatic blink component removal started ... ')
+    [rmComps, automaticFlag] = automaticCompRemoval(data,comp);
+    fprintf('done! \n')
+end
 
-% cfg = [];
-% cfg.viewmode = 'vertical';
-% cfg.ylim = [-100 100];
-% cfg.blocksize = 30;
-% evalc('ft_databrowser(cfg, data)');
-
-cfg = [];
-cfg.component = 1:30; % specify the component(s) that should be plotted
-cfg.layout    = 'EEG1010'; % specify the layout file that should be used for plotting
-cfg.comment   = 'no';
-cfg.compscale = 'local';
-cfg.interactive = 'no';
-figure();
-evalc('ft_topoplotIC(cfg, comp);');
-set(gcf, 'units', 'normalized', 'Position', [xScreenLength/2 yScreenLength xScreenLength/2 yScreenLength])
-
-
-
-fprintf('\t press SPACE after inspecting components \n')
-pause;
-
-close all
-
-inputStr = sprintf('\t Input component numbers to be removed, seperated by a comma. ');
-rmComps = input(inputStr', 's');
-
-rmComps = strrep(rmComps, ' ', '');
+if ~automaticFlag
+    
+    fprintf('\t preparing layout...')
+    cfg = [];
+    cfg.channel  = data.label;
+    cfg.layout   = 'EEG1010';
+    cfg.feedback = 'no';
+    cfg.skipcomnt  = 'yes';
+    cfg.skipscale  = 'yes';
+    evalc('lay = ft_prepare_layout(cfg);');
+    fprintf('done! \n')
+    
+    fprintf('\t showing components ... \n')
+    
+    cfg = [];
+    cfg.viewmode = 'component';
+    cfg.layout = lay;
+    cfg.ylim = [-2000 2000];
+    cfg.blocksize = 30;
+    evalc('ft_databrowser(cfg, comp)');
+    set(gcf, 'units', 'normalized', 'Position', [0 0 xScreenLength/2 yScreenLength])
+    
+    % cfg = [];
+    % cfg.viewmode = 'vertical';
+    % cfg.ylim = [-100 100];
+    % cfg.blocksize = 30;
+    % evalc('ft_databrowser(cfg, data)');
+    
+    cfg = [];
+    cfg.component = 1:30; % specify the component(s) that should be plotted
+    cfg.layout    = 'EEG1010'; % specify the layout file that should be used for plotting
+    cfg.comment   = 'no';
+    cfg.compscale = 'local';
+    cfg.interactive = 'no';
+    figure();
+    evalc('ft_topoplotIC(cfg, comp);');
+    set(gcf, 'units', 'normalized', 'Position', [xScreenLength/2 yScreenLength xScreenLength/2 yScreenLength])
+    
+    fprintf('\t press SPACE after inspecting components \n')
+    pause;
+    
+    close all
+    
+    inputStr = sprintf('\t Input component numbers to be removed, seperated by a comma. ');
+    rmComps = input(inputStr', 's');
+    
+    rmComps = strrep(rmComps, ' ', '');
+    rmComps = strsplit(rmComps, ',');
+    
+    rmComps = str2double(rmComps);
+    
+end
 
 if ~strcmp(rmComps, '')
-    badComponents = strsplit(rmComps, ',');
+    
+    rmCompIndx = rmComps;
+    if rmCompIndx > 20
+        rmCompIndx = 21;
+    end
+    
+    cfg = [];
+    cfg.badPartsMatrix  = [ones(length(rmComps), 1), rmCompIndx'];
+    cfg.horzLim         = 60;
+    cfg.scroll          = 0;
+    cfg.visible         = 'on';
+    cfg.channel         = unique([1:20, rmComps]);
+    fig1 = scrollPlotData(cfg, comp);
+    set(gcf, 'units', 'normalized', 'Position', [xScreenLength/2 yScreenLength xScreenLength/2 yScreenLength])
+    
+    cfg = [];
+    cfg.component = rmComps; % specify the component(s) that should be plotted
+    cfg.layout    = 'EEG1010'; % specify the layout file that should be used for plotting
+    cfg.comment   = 'no';
+    cfg.compscale = 'local';
+    cfg.interactive = 'no';
+    fig2 = figure();
+    evalc('ft_topoplotIC(cfg, comp);');
+    set(gcf, 'units', 'normalized', 'Position', [0 0 xScreenLength/2 yScreenLength])
+    
+    if strcmpi(saveFigure, 'yes');
+        
+        filename = [currSubject '_badComponentsTrial.png'];
+        fprintf('\t saving figure to %s... ', filename)
+        saveas(fig1, [PATHS.FIGURES filesep filename])
+        fprintf('done! \n');
+        
+        filename = [currSubject '_badComponentsTopo.png'];
+        fprintf('\t saving figure to %s... ', filename)
+        saveas(fig2, [PATHS.FIGURES filesep filename])
+        fprintf('done! \n');
+        close all
+    end
+    
+    
+    
+    
+    badComponents = strread(num2str(rmComps),'%s');
     
     fprintf(['\t removing component(s): ' repmat('%s ',1,length(badComponents)), ...
         ' ... '], badComponents{:})
@@ -103,10 +164,10 @@ if ~strcmp(rmComps, '')
     evalc('data            = ft_rejectcomponent(cfg,comp,data);');
     
     fprintf('done! \n')
-    
-    cRemFilename = [currSubject '_' outputStr '.mat'];
-    
+      
     if strcmpi(saveData, 'yes')
+        
+        cRemFilename = [currSubject '_' outputStr '.mat'];
         subjectdata.PATHS.COMPREMOVED = [subjectdata.PATHS.SUBJECTDIR filesep cRemFilename];
         
         fprintf('\t Saving %s ... ', cRemFilename)
@@ -123,7 +184,6 @@ if ~strcmp(rmComps, '')
         save([subjectdata.PATHS.SUBJECTDIR filesep 'Subject.mat'], 'subjectdata')
         fprintf('done! \n')
     end
-    
 else
     if strcmpi(saveData, 'yes')
         

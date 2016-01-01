@@ -1,20 +1,12 @@
+function [R, P] = createCorrCorrMatrix(Ws)
+
+R = zeros(size(Ws,3), size(Ws,3));
+P = R;
 for i = 1:size(Ws,3)
-    tmpW1 = Ws(:, :, i);
-    for j = 1:size(Ws,3)
-        currW1 = tmpW1;
-        currW2 = Ws(:, :, j);
+    currW1 = Ws(:, :, i);
         
-%         % find removed channels
-%         rmChannels = cat(1,allSubjectResults.removedChannels{i}, allSubjectResults.removedChannels{j});
-%         if ~isempty(rmChannels)
-%             rmChanIndx = find(ismember(allSubjectResults.chanNames, rmChannels));
-%             
-%             currW1(rmChanIndx,:) = [];
-%             currW1(:,rmChanIndx) = [];
-%             currW2(rmChanIndx,:) = [];
-%             currW2(:,rmChanIndx) = [];
-%             
-%         end
+    for j = 1:size(Ws,3)
+        currW2 = Ws(:, :, j);
         
         [currR, currP] = correlateMatrices(currW1, currW2);
         R(i,j) = currR;

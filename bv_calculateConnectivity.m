@@ -17,8 +17,8 @@ if nargin < 2
     
     subjectdata.cfgs.(outputStr) = cfg;
     
-    trueRmChannels = ft_channelselection({'all','-M1', '-M2'}, subjectdata.rmChannels);
-    
+    trueRmChannels = subjectdata.rmChannels(not(ismember(subjectdata.rmChannels, {'M1', 'M2'})));
+        
     data.label = cat(1,data.label, trueRmChannels);
     for iTrl = 1:length(data.trial)
         data.trial{iTrl}(size(data.trial{iTrl},1)+1:size(data.trial{iTrl},1)+length(trueRmChannels), :) = NaN;
