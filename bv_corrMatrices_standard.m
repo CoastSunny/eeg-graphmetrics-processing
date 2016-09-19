@@ -1,8 +1,8 @@
-function corrMatrices_testRetest(cfg)
+function bv_corrMatrices_standard(cfg)
 
 freqrange       = ft_getopt(cfg, 'freqrange');
 overwrite       = ft_getopt(cfg, 'overwrite', 0);
-corrMethod      = ft_getopt(cfg, 'corrMethod', 'wpli_debiased');
+corrMethod      = ft_getopt(cfg, 'corrMethod');
 clnDataStr      = ft_getopt(cfg, 'clnDataStr', 'cleaned');
 saveData        = ft_getopt(cfg, 'saveData', 1);
 outputStr       = ft_getopt(cfg, 'outputStr');
@@ -64,7 +64,7 @@ for iSubject = 1:length(subjectNames);
                     cfg = [];
                     cfg.method      = 'mtmfft';
                     cfg.taper       = 'dpss';
-                    cfg.output      = 'fourier';
+                    cfg.output      = 'powandcsd';
                     cfg.tapsmofrq   = 2;
                     cfg.foilim      = freqrange;
                     cfg.keeptrials  = 'yes';
@@ -93,12 +93,12 @@ for iSubject = 1:length(subjectNames);
                     end
                     
                 case 'wpli'
-                    fprintf('\t \t frequency analysis before connectivity analysis ... ')
+                    fprintf('\t \t frequency analysis before connectivity analysis ... ')                    
                     
                     cfg = [];
                     cfg.method      = 'mtmfft';
                     cfg.taper       = 'dpss';
-                    cfg.output      = 'fourier';
+                    cfg.output      = 'powandcsd';
                     cfg.tapsmofrq   = 2;
                     cfg.foilim      = freqrange;
                     cfg.keeptrials  = 'yes';
@@ -156,6 +156,37 @@ for iSubject = 1:length(subjectNames);
                         chansDeleted = [];
                     end
                     
+                case 'coh'
+                    cfg = [];
+                    cfg.method      = 'mtmfft';
+                    cfg.taper       = 'dpss';
+                    cfg.output      = 'fourier';
+                    cfg.tapsmofrq   = 2;
+                    cfg.foilim      = freqrange;
+                    cfg.keeptrials  = 'yes';
+                    cfg.trials      = triggerIndx(1:6);
+                    evalc('freq = ft_freqanalysis(cfg, data);');
+                    
+                    frequencyVector = freq.freq;
+                    
+                    fprintf(['\t \t connectivity analysis with ' corrMethod ' ... '])
+                    cfg           = [];
+                    cfg.method      =  'coh';
+                    cfg.complex     = 'imag';
+                    evalc('coh = ft_connectivityanalysis(cfg, freq);');
+                    fprintf('done \n')
+                    
+                    cMatrix = squeeze(mean(coh.cohspctrm,3));
+                    
+                    if ~isempty(subjectdata.removedchannelsPreprocess)
+                        boolChanDeleted = true;
+                        chansDeleted = subjectdata.removedchannelsPreprocess;
+                        allLabelsInOrder = cat(1, data.label, chansDeleted);
+                    else
+                        boolChanDeleted = false;
+                        allLabelsInOrder = data.label;
+                        chansDeleted = [];
+                    end
             end
             
             if boolChanDeleted
@@ -166,7 +197,7 @@ for iSubject = 1:length(subjectNames);
             % sort both channels and cMatrix on allLabelsInOrder order, to
             % ensure all corr_matrices are equal
             [~, sortIdx] = sort(allLabelsInOrder);
-            allSubjectResults.chanNames = data.label(sortIdx);
+            allSubjectResults.chanNames = allLabelsInOrder(sortIdx);
             cMatrix = cMatrix(sortIdx, sortIdx);
             
             % store data in struct

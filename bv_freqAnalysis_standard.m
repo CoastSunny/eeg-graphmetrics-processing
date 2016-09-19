@@ -55,7 +55,7 @@ for iSubjects = 1:length(subjectNames);
     fprintf('\t freq analysis ... ')
     cfg = [];
     cfg.freqrange = freqrange;
-    freq = QC_freqanalysis(cfg, data);
+    freq = bvLL_frequencyanalysis(cfg, data);
     fprintf('done \n')
     
     if saveData

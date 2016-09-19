@@ -22,7 +22,7 @@ for iW = 1:size(Ws1,3);
     end
 
     [currR, currP] = correlateMatrices(currW1, currW2);
-    R(iW) = currR(2);
-    P(iW) = currP(2);
+    R(iW) = currR;
+    P(iW) = currP;
 end
 

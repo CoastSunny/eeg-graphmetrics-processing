@@ -14,7 +14,7 @@ cfg.output      = 'pow';
 cfg.tapsmofrq   = 4;
 cfg.foilim      = [freqrange(1) freqrange(2)];
 cfg.keeptrials  = 'yes';
-freq = ft_freqanalysis(cfg, data);
+evalc('freq = ft_freqanalysis(cfg, data);');
 
 
 

@@ -1,4 +1,4 @@
-function preprocess_testRetest(cfg)
+function bv_preprocess_standard(cfg)
 
 hpfilter                = ft_getopt(cfg, 'hpfilter',1);
 hpfreq                  = ft_getopt(cfg, 'hpfreq',2);

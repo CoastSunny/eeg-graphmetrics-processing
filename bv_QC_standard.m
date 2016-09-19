@@ -1,4 +1,4 @@
-function data = QC_testRetest( cfg, data )
+function data = bv_QC_standard( cfg, data )
 
 % general options
 subdirectory        = ft_getopt(cfg, 'subdirectory');
@@ -16,7 +16,6 @@ artefactdefStr      = ft_getopt(cfg, 'artefactdefStr', 'artefactdef');
 freqStr             = ft_getopt(cfg, 'freqStr', 'freq');
 dataType            = ft_getopt(cfg, 'dataType');
 trialfun            = ft_getopt(cfg, 'trialfun');
-
 
 % options for quality control
 QCDir       = ft_getopt(cfg, 'QCDir', 'QualityControl');
@@ -107,7 +106,7 @@ else
     PATHS.OUTPUT    = [PATHS.ROOT filesep QCDir];
     PATHS.SUBJECTS  = [PATHS.ROOT filesep subjectsDir];
     
-    bdfFiles = dir([PATHS.RAW filesep '*' dataType]);
+    bdfFiles = dir([PATHS.RAW filesep '*' dataType ]);
     bdfNames = {bdfFiles.name};
     
     if ischar(startSubject)
@@ -149,8 +148,8 @@ for iRaw = startSubject:endSubject
         disp(subjectName)
         subjectFolderName = dir([PATHS.SUBJECTS filesep '*' subjectName '*']);
         
-        personalOutputFolder = [PATHS.OUTPUT filesep subjectFolderName.name filesep subdirectory];
-        subjectRootFolder = [PATHS.SUBJECTS filesep subjectFolderName.name ];
+        personalOutputFolder = [PATHS.OUTPUT filesep subjectName filesep subdirectory];
+        subjectRootFolder = [PATHS.SUBJECTS filesep subjectName ];
         dataFilename = [subjectName '_' dataStr '.mat'];
         artefactFilename = [subjectName '_' artefactdefStr '.mat'];
         freqFilename = [subjectName '_' freqStr '.mat'];
@@ -268,7 +267,7 @@ for iRaw = startSubject:endSubject
                 cfg.trigger     = trigger;
                 cfg.trialfun    = trialfun;
                 
-                evalc('data = QC_preprocessing(cfg);');
+                evalc('data = bvLL_preprocessing(cfg);');
                 
                 if strcmpi(saveAnalysisSteps, 'on')
                     if ~exist(personalOutputFolder,'dir')
@@ -279,21 +278,22 @@ for iRaw = startSubject:endSubject
                     fprintf('done \n')
                 end
                 
-%                 fprintf(['\t \t Redefining triallength to ' num2str( triallength ) ' seconds, ... '])
-%                 cfg = [];
-%                 cfg.length = triallength;
-%                 cfg.overlap = 0;
-%                 evalc('data = ft_redefinetrial(cfg, data);');
-%                 fprintf('done \n')
+                fprintf(['\t \t Redefining triallength to ' num2str( triallength ) ' seconds, ... '])
+                cfg = [];
+                cfg.length = triallength;
+                cfg.overlap = 0;
+                evalc('data = ft_redefinetrial(cfg, data);');
+                fprintf('done \n')
                                 
                 fprintf('\t \t preprocessing RAW data done! \n')
                 
             case 'freqAnalysis'
                 fprintf('\t Doing frequency analysis \n')
                 
-                cfg = [];
-                cfg.freqrange = freqrange;
-                freq = QC_freqanalysis(cfg, data);
+                
+                
+                
+                freq = bvLL_frequencyanalysis(data, freqrange);
                 
                 if strcmpi(saveAnalysisSteps, 'on')
                     fprintf('\t \t saving preprocessed data to %s ... ', freqFilename)
@@ -325,7 +325,7 @@ for iRaw = startSubject:endSubject
                 cfg.invVarLim   = invVarLim;
                 cfg.kurtLim     = kurtLim;
                 cfg.rangeLim    = rangeLim;
-                [artefactdef, counts] = QC_artefactDetection(cfg, data, freq);
+                [artefactdef, counts] = bvLL_artefactDetection(cfg, data, freq);
                 
                 if strcmpi(saveAnalysisSteps, 'on')
                     fprintf('\t \t saving artefact definition to %s ... ', artefactFilename)
@@ -367,9 +367,15 @@ for iRaw = startSubject:endSubject
                     fprintf('done \n ')
                     
                     fprintf(' \t \t starting artefact rejection without removed channels \n ');
+                    
+                    fprintf(['\t \t Redefining triallength to ' num2str( triallength ) ' seconds, ... '])
                     cfg = [];
-                    cfg.freqrange = [1 100];
-                    freq = QC_freqanalysis(cfg, data);
+                    cfg.length = triallength;
+                    cfg.overlap = 0;
+                    evalc('data = ft_redefinetrial(cfg, data);');
+                    fprintf('done \n')
+                    
+                    freq = bvLL_frequencyanalysis(data, freqrange);
                     
                     cfg = [];
                     cfg.betaLim     = betaLim;
@@ -377,13 +383,15 @@ for iRaw = startSubject:endSubject
                     cfg.varLim      = varLim;
                     cfg.invVarLim   = invVarLim;
                     cfg.kurtLim     = kurtLim;
-                    [artefactdef, counts] = QC_artefactDetection(cfg, data, freq);
+                    [artefactdef, counts] = bvLL_artefactDetection(cfg, data, freq);
                     fprintf(' \t \t artefact rejection without removed channels done \n')
                     
                 end
                 
             case 'createFigures'
-                               
+                
+                
+                
                 fprintf('\t Creating figures \n')
                 
                 fprintf('\t \t creating scrollPlot ... ')
