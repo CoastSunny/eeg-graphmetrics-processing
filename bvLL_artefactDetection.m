@@ -120,17 +120,18 @@ if doStandardArtefacts
 end
 
 if doStandardArtefacts
-    betaStart   = find(freq.freq == 10);
-    betaEnd     = find(freq.freq == 25);
-    gammaStart  = find(freq.freq == 25);
-    gammaEnd    = find(freq.freq == 50);
+
+
     
-    artefactdef.betaPower   = squeeze( mean( freq.powspctrm( :, :, betaStart:betaEnd), 3 ) );
-    artefactdef.betaPower   = artefactdef.betaPower';
-    artefactdef.gammaPower  = squeeze( mean( freq.powspctrm( :, :, gammaStart:gammaEnd), 3 ) );
-    artefactdef.gammaPower  = artefactdef.gammaPower';
+
+
     
     if ismember('betaPower', artefactMethods)
+        betaStart   = find(freq.freq == 10);
+        betaEnd     = find(freq.freq == 25);
+        
+        artefactdef.betaPower   = squeeze( mean( freq.powspctrm( :, :, betaStart:betaEnd), 3 ) );
+        artefactdef.betaPower   = artefactdef.betaPower';
         
         [badChannelBeta, badTrialBeta]  = find(artefactdef.betaPower > betaLim);
         badChannels                     = [badChannels; badChannelBeta];
@@ -141,6 +142,12 @@ if doStandardArtefacts
     end
     if ismember('gammaPower', artefactMethods)
         
+        gammaStart  = find(freq.freq == 25);
+        gammaEnd    = find(freq.freq == 50);
+        
+        artefactdef.gammaPower  = squeeze( mean( freq.powspctrm( :, :, gammaStart:gammaEnd), 3 ) );
+        artefactdef.gammaPower  = artefactdef.gammaPower';
+    
         [badChannelGamma, badTrialGamma]    = find(artefactdef.gammaPower > gammaLim);
         badChannels                         = [badChannels; badChannelGamma];
         badTrials                           = [badTrials; badTrialGamma];
@@ -153,7 +160,7 @@ end
 artefactdef.badPartsMatrix = unique([ badTrials badChannels ], 'rows');
 
 artefactdef.badTrials = unique(badTrials);
-artefactdef.goodTrials = 1:length(artefactdef.kurtLevels);
+artefactdef.goodTrials = 1:size(artefactdef.kurtLevels,2);
 artefactdef.goodTrials(ismember(artefactdef.goodTrials, artefactdef.badTrials)) = [];
 
 artefactdef.pBadTrialsPerChannel = ceil(((hist(artefactdef.badPartsMatrix(:,2), 1:length(data.label)))./length(data.trial)) .* 100);

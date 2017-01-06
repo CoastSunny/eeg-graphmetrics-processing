@@ -1,4 +1,9 @@
-function [W_neighbRemoved, sortLabels] = removeNeighbors(Ws, channels)
+function [W_neighbRemoved, sortLabels] = removeNeighbors(corrMatStr, saveData)
+
+corrMat = dir(['*' corrMatStr '.mat']);
+load(corrMat.name)
+Ws = allSubjectResults.corrMatrices;
+channels = allSubjectResults.chanNames;
 
 cfg = [];
 cfg.channel  = channels;
@@ -10,7 +15,7 @@ evalc('lay = ft_prepare_layout(cfg);');
 
 cfg =[];
 cfg.method = 'distance';
-cfg.neighbourdist = 0.15;
+cfg.neighbourdist = 0.2;
 cfg.layout = lay;
 cfg.feedback = 'no';
 neighbors = ft_prepare_neighbours(cfg);
@@ -29,3 +34,10 @@ for iW = 1:size(sorted_Ws,3)
 end
 
 sortLabels = lay.label;
+allSubjectResults.corrMatrices = W_neighbRemoved;
+allSubjectResults.chanNames = sortLabels;
+
+if saveData 
+    outputName = ['corrMatrices_' corrMatStr '_neighbRemoved.mat'];
+    save(outputName, 'allSubjectResults')
+end

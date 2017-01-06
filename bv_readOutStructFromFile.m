@@ -1,20 +1,28 @@
-function [output, names] = readOutStructFromFile(cfg)
+function [output, names] = bv_readOutStructFromFile(cfg)
 
 startSubject    = ft_getopt(cfg, 'startSubject', 1);
 endSubject      = ft_getopt(cfg, 'endSubject', 'end');
 fields          = ft_getopt(cfg, 'fields');
 analysisTree    = ft_getopt(cfg, 'analysisTree');
-structFileName  = ft_getopt(cfg, 'structFileName', 'Subject.mat');
-structVarFname  = ft_getopt(cfg, 'structVarName', 'subjectdata');
+structFileName  = ft_getopt(cfg, 'structFileName');
+structVarFname  = ft_getopt(cfg, 'structVarFname');
 namesOnly       = ft_getopt(cfg, 'namesOnly', 'no');
+parentFolder    = ft_getopt(cfg, 'parentFolder');
 optionsFcn      = ft_getopt(cfg, 'optionsFcn');
 
 eval(optionsFcn)
 
-subjectFolders = dir([PATHS.SUBJECTS filesep '*' sDirString '*']);
-names = {subjectFolders.name};
+if ~exist(parentFolder, 'dir')
+    error('Cannot find parent folder')
+else
+    PATHS.PARENTFOLDER = [PATHS.ROOT filesep parentFolder];
+end
+
+
+folders = dir([ PATHS.PARENTFOLDER filesep '*' sDirString '*']);
+names = {folders.name};
 names = names';            
-output = [];
+output = {};
 
 if strcmpi(namesOnly, 'yes') 
     return
@@ -38,14 +46,16 @@ end
 for iSubject = startSubject:endSubject
     currSubjectName = names{iSubject};
 %     disp(currSubjectName)
+    file2load = dir([PATHS.PARENTFOLDER filesep currSubjectName filesep analysisTree filesep '*' structFileName '*']);
+    fileName = file2load.name;
     try
-        load([PATHS.SUBJECTS filesep currSubjectName filesep analysisTree filesep structFileName])
+        load([PATHS.PARENTFOLDER filesep currSubjectName filesep analysisTree filesep fileName])
     catch
         error('\t %s file not found for %s', structFileName, currSubjectName)
     end
     
     try
-        outputVar = eval(strjoin(['subjectdata', fields], '.'));
+        outputVar = eval(strjoin([structVarFname, fields], '.'));
     catch
         warning('fields not found for subject %s, continue without value for current subject', currSubjectName)
         continue
@@ -58,28 +68,28 @@ for iSubject = startSubject:endSubject
     switch class(outputVar)
         case 'char'
             if ~exist('output', 'var')
-                output = cell(length(subjectFolders), 1);
+                output = cell(length(folders), 1);
             end
             output{iSubject} = outputVar;
         case 'struct'
             output.(['Subject_' currSubjectName]) = outputVar;
         case 'double'
-            outputVar = reshape(outputVar, [ 1 numel(outputVar) ] );
-            if ~exist('output', 'var')
-                output = NaN(length(subjectFolders), 1);
-            else
-                if size(outputVar, 2) > size(output, 2)
-                    output = cat(2, output, NaN(length(subjectFolders), size(outputVar, 2) - size(output, 2)));
-                end
-            end
-            output(iSubject,:) = outputVar;
+%             outputVar = reshape(outputVar, [ 1 numel(outputVar) ] );
+%             if ~exist('output', 'var')
+%                 output = NaN(length(folders), 1);
+%             else
+%                 if size(outputVar, 2) > size(output, 2)
+%                     output = cat(2, output, NaN(length(folders), size(outputVar, 2) - size(output, 2)));
+%                 end
+%             end
+            output{iSubject} = outputVar;
         case 'cell'
             outputVar = reshape(outputVar, [ 1 numel(outputVar) ] );
             if ~exist('output', 'var')
-                output = cell(length(subjectFolders), size(outputVar, 2));
+                output = cell(length(folders), size(outputVar, 2));
             else
                 if size(outputVar, 2) > size(output, 2)
-                    output = cat(2, output, cell(length(subjectFolders), size(outputVar, 2) - size(output, 2)));
+                    output = cat(2, output, cell(length(folders), size(outputVar, 2) - size(output, 2)));
                 end
             end
             output(iSubject,1:size(outputVar,2)) = outputVar;

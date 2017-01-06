@@ -7,6 +7,7 @@ clnDataStr      = ft_getopt(cfg, 'clnDataStr', 'cleaned');
 saveData        = ft_getopt(cfg, 'saveData', 1);
 outputStr       = ft_getopt(cfg, 'outputStr');
 optionsFcn      = ft_getopt(cfg, 'optionsFcn');
+noTrials        = ft_getopt(cfg, 'noTrials');
 
 eval(optionsFcn)
 
@@ -42,7 +43,8 @@ for iSubject = 1:length(subjectNames);
         counter = counter + 1;
         
         triggerIndx = find(data.trialinfo == triggers.value(iTrig));
-        fprintf(['\t ' triggers.label{iTrig} '\n'])        
+        
+        fprintf(['\t ' triggers.label{iTrig} '\n'])
         personalOutputFile = [ subjectNameSession '_corrMatrices_' corrMethod '_' outputStr '_' triggers.label{iTrig} '.mat'];
         path2personalOutputFile = [personalSubjectFolder filesep personalOutputFile];
         
@@ -61,27 +63,37 @@ for iSubject = 1:length(subjectNames);
                 case 'wpli_debiased'
                     fprintf('\t \t frequency analysis before connectivity analysis ... ')
                     
-                    cfg = [];
-                    cfg.method      = 'mtmfft';
-                    cfg.taper       = 'dpss';
-                    cfg.output      = 'powandcsd';
-                    cfg.tapsmofrq   = 2;
-                    cfg.foilim      = freqrange;
-                    cfg.keeptrials  = 'yes';
-                    cfg.trials      = triggerIndx(1:12);
-                    evalc('freq = ft_freqanalysis(cfg, data);');
-                    fprintf('done \n')
+                    while 1
+                        
+                        if length(triggerIndx) < noTrials
+                            warning('/t /t no %s trials found', num2str(noTrials))
+                            cMatrix = nan(size(data.trial{1},1), size(data.trial{1},1));
+                            break
+                        end
+                        
+                        cfg = [];
+                        cfg.method      = 'mtmfft';
+                        cfg.taper       = 'dpss';
+                        cfg.output      = 'fourier';
+                        cfg.tapsmofrq   = 2;
+                        cfg.foilim      = freqrange;
+                        cfg.keeptrials  = 'yes';
+                        cfg.trials      = triggerIndx(1:noTrials);
+                        evalc('freq = ft_freqanalysis(cfg, data);');
+                        fprintf('done \n')
+                        
+                        frequencyVector = freq.freq;
+                        
+                        fprintf(['\t \t connectivity analysis with ' corrMethod ' ... '])
+                        cfg           = [];
+                        cfg.method    =  'wpli_debiased';
+                        evalc('wpli_debiased = ft_connectivityanalysis(cfg, freq);');
+                        fprintf('done \n')
+                        
+                        cMatrix = squeeze(mean(wpli_debiased.wpli_debiasedspctrm,3));
+                        break
+                    end
                     
-                    frequencyVector = freq.freq;
-                    
-                    fprintf(['\t \t connectivity analysis with ' corrMethod ' ... '])
-                    cfg           = [];
-                    cfg.method    =  'wpli_debiased';
-                    evalc('wpli_debiased = ft_connectivityanalysis(cfg, freq);');
-                    fprintf('done \n')
-                    
-                    cMatrix = squeeze(mean(wpli_debiased.wpli_debiasedspctrm,3));
-                                        
                     if ~isempty(subjectdata.removedchannelsPreprocess)
                         boolChanDeleted = true;
                         chansDeleted = subjectdata.removedchannelsPreprocess;
@@ -93,29 +105,39 @@ for iSubject = 1:length(subjectNames);
                     end
                     
                 case 'wpli'
-                    fprintf('\t \t frequency analysis before connectivity analysis ... ')                    
+                    fprintf('\t \t frequency analysis before connectivity analysis ... ')
                     
-                    cfg = [];
-                    cfg.method      = 'mtmfft';
-                    cfg.taper       = 'dpss';
-                    cfg.output      = 'powandcsd';
-                    cfg.tapsmofrq   = 2;
-                    cfg.foilim      = freqrange;
-                    cfg.keeptrials  = 'yes';
-                    cfg.trials      = triggerIndx(1:12);
-                    evalc('freq = ft_freqanalysis(cfg, data);');
-                    fprintf('done \n')
+                    while 1
+                        
+                        if length(triggerIndx) < noTrials
+                            warning('/t /t no %s trials found', num2str(noTrials))
+                            cMatrix = nan(size(data.trial{1},1), size(data.trial{1},1));
+                            break
+                        end
+                        
+                        cfg = [];
+                        cfg.method      = 'mtmfft';
+                        cfg.taper       = 'dpss';
+                        cfg.output      = 'fourier';
+                        cfg.tapsmofrq   = 2;
+                        cfg.foilim      = freqrange;
+                        cfg.keeptrials  = 'yes';
+                        cfg.trials      = triggerIndx(1:noTrials);
+                        evalc('freq = ft_freqanalysis(cfg, data);');
+                        fprintf('done \n')
+                        
+                        frequencyVector = freq.freq;
+                        
+                        fprintf(['\t \t connectivity analysis with ' corrMethod ' ... '])
+                        cfg           = [];
+                        cfg.method    =  'wpli';
+                        evalc('wpli = ft_connectivityanalysis(cfg, freq);');
+                        fprintf('done \n')
+                        
+                        cMatrix = squeeze(mean(wpli.wplispctrm,3));
+                        break
+                    end
                     
-                    frequencyVector = freq.freq;
-                    
-                    fprintf(['\t \t connectivity analysis with ' corrMethod ' ... '])
-                    cfg           = [];
-                    cfg.method    =  'wpli';
-                    evalc('wpli_debiased = ft_connectivityanalysis(cfg, freq);');
-                    fprintf('done \n')
-                    
-                    cMatrix = squeeze(mean(wpli_debiased.wplispctrm,3));
-                                        
                     if ~isempty(subjectdata.removedchannelsPreprocess)
                         boolChanDeleted = true;
                         chansDeleted = subjectdata.removedchannelsPreprocess;
@@ -128,24 +150,32 @@ for iSubject = 1:length(subjectNames);
                     
                 case 'pli'
                     
-                    trlsel = find(data.trialinfo == triggers.value(iTrig));
+                    while 1
+                        
+                        if length(triggerIndx) < noTrials
+                            warning('/t /t no %s trials found', num2str(noTrials))
+                            cMatrix = nan(size(data.trial{1},1), size(data.trial{1},1));
+                            break
+                        end
+                        
+                        fprintf('\t \t selecting trials and bandpass filtering at %s ... ', ['[', num2str(freqrange(1)), ' ', num2str(freqrange(2)), ']'])
+                        cfg = [];
+                        cfg.trials = triggerIndx(1:noTrials);
+                        evalc('dataSel = ft_selectdata(cfg, data);');
+                        dat = dataSel.trial;
+                        
+                        Fs = data.fsample;
+                        
+                        [filt] = bv_butterFilter(dat, freqrange, Fs);
+                        fprintf('done \n')
+                        
+                        PLIperTrial = PLI(filt, 2);
+                        Ws = cat(3, PLIperTrial{:});
+                        
+                        cMatrix = mean(Ws(:,:,1:noTrials),3);
+                        break
+                    end
                     
-                    fprintf('\t \t selecting trials and bandpass filtering at %s ... ', ['[', num2str(freqrange(1)), ' ', num2str(freqrange(2)), ']'])
-                    cfg = [];
-                    cfg.trials = trlsel;
-                    evalc('dataSel = ft_selectdata(cfg, data);');
-                    dat = dataSel.trial;
-                    
-                    Fs = data.fsample;
-                    
-                    [filt] = butterFilterBV(dat, freqrange, Fs);
-                    fprintf('done \n')
-                    
-                    PLIperTrial = PLI(filt, 2);
-                    Ws = cat(3, PLIperTrial{:});
-                    
-                    cMatrix = mean(Ws(:,:,1:12),3);
-                                       
                     if ~isempty(subjectdata.removedchannelsPreprocess)
                         boolChanDeleted = true;
                         chansDeleted = subjectdata.removedchannelsPreprocess;
@@ -157,26 +187,36 @@ for iSubject = 1:length(subjectNames);
                     end
                     
                 case 'coh'
-                    cfg = [];
-                    cfg.method      = 'mtmfft';
-                    cfg.taper       = 'dpss';
-                    cfg.output      = 'fourier';
-                    cfg.tapsmofrq   = 2;
-                    cfg.foilim      = freqrange;
-                    cfg.keeptrials  = 'yes';
-                    cfg.trials      = triggerIndx(1:6);
-                    evalc('freq = ft_freqanalysis(cfg, data);');
                     
-                    frequencyVector = freq.freq;
+                    while 1
+                    if length(triggerIndx) < noTrials
+                        warning('/t /t no %s trials found', num2str(noTrials))
+                        cMatrix = nan(size(data.trial{1},1), size(data.trial{1},1));
+                        break
+                    end
                     
-                    fprintf(['\t \t connectivity analysis with ' corrMethod ' ... '])
-                    cfg           = [];
-                    cfg.method      =  'coh';
-                    cfg.complex     = 'imag';
-                    evalc('coh = ft_connectivityanalysis(cfg, freq);');
-                    fprintf('done \n')
                     
-                    cMatrix = squeeze(mean(coh.cohspctrm,3));
+                        cfg = [];
+                        cfg.method      = 'mtmfft';
+                        cfg.taper       = 'dpss';
+                        cfg.output      = 'fourier';
+                        cfg.tapsmofrq   = 2;
+                        cfg.foilim      = freqrange;
+                        cfg.keeptrials  = 'yes';
+                        cfg.trials      = triggerIndx(1:noTrials);
+                        evalc('freq = ft_freqanalysis(cfg, data);');
+                        
+                        frequencyVector = freq.freq;
+                        
+                        fprintf(['\t \t connectivity analysis with ' corrMethod ' ... '])
+                        cfg           = [];
+                        cfg.method      =  'coh';
+                        evalc('coh = ft_connectivityanalysis(cfg, freq);');
+                        fprintf('done \n')
+                        
+                        cMatrix = squeeze(mean(coh.cohspctrm,3));
+                        break
+                    end
                     
                     if ~isempty(subjectdata.removedchannelsPreprocess)
                         boolChanDeleted = true;
@@ -213,7 +253,7 @@ for iSubject = 1:length(subjectNames);
                 fprintf(' done \n')
             end
             
-            clear cMatrix freq 
+            clear cMatrix freq
         end
         
     end

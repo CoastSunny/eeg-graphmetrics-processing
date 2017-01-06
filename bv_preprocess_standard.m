@@ -1,11 +1,11 @@
 function bv_preprocess_standard(cfg)
 
 hpfilter                = ft_getopt(cfg, 'hpfilter',1);
-hpfreq                  = ft_getopt(cfg, 'hpfreq',2);
+hpfreq                  = ft_getopt(cfg, 'hpfreq',1);
 bsfilter                = ft_getopt(cfg, 'bsfilter',1);
 bsfreq                  = ft_getopt(cfg, 'bsfreq', [48 52; 98 102]);
 resample                = ft_getopt(cfg, 'resample', 1);
-resamplefs              = ft_getopt(cfg, 'resamplefs');
+resamplefs              = ft_getopt(cfg, 'resamplefs', 512);
 reref                   = ft_getopt(cfg, 'reref', 1);
 refElectrode            = ft_getopt(cfg, 'refElectrode');
 % trigger                 = ft_getopt(cfg, 'trigger', [11 12]);
@@ -38,7 +38,7 @@ if ischar(startSubject)
     startSubject = find(ismember(subjectNames, startSubject));
 end
 if ischar(endSubject)
-    if strcmp(endSubject, 'end')
+    if strcmp(endSubject, 'last')
         endSubject = length(subjectNames);
     else
         endSubject = find(ismember(subjectNames, endSubject));
@@ -112,7 +112,7 @@ for iSubject = startSubject:endSubject;
     cfg.reref       = reref;
     cfg.trialfun    = trialfun;
     
-    data = QC_preprocessing(cfg);
+    data = bvLL_preprocessing(cfg);
     
     if saveData
         fprintf('\t saving %s ... ', outputFile)

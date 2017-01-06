@@ -1,4 +1,4 @@
-function [filt] = butterFilterBV(dat, freqrange, Fs)
+function [filt] = bv_butterFilter(dat, freqrange, Fs)
 
 if nargin < 3
     error('No sampling frequency given')
@@ -14,7 +14,7 @@ if ~iscell(dat)
     dat = {dat};
 end
 
-N = 6;
+N = [];
 type = 'but';
 
 if length(freqrange) > 2

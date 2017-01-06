@@ -1,4 +1,4 @@
-function freqAnalysis_testRetest(cfg)
+function bv_freqAnalysis_standard(cfg)
 
 freqrange   = ft_getopt(cfg, 'freqrange', [1 100]);
 saveData    = ft_getopt(cfg, 'saveData', 1);
@@ -53,9 +53,8 @@ for iSubjects = 1:length(subjectNames);
     end
     
     fprintf('\t freq analysis ... ')
-    cfg = [];
-    cfg.freqrange = freqrange;
-    freq = bvLL_frequencyanalysis(cfg, data);
+
+    freq = bvLL_frequencyanalysis(data, freqrange);
     fprintf('done \n')
     
     if saveData

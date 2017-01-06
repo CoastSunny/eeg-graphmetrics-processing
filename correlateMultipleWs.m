@@ -12,15 +12,22 @@ for iW = 1:size(Ws1,3);
     currW1 = Ws1(:,:,iW);
     currW2 = Ws2(:,:,iW);
     
-    rmChanIndx = find(sum(isnan(currW1),2) == size(currW1,1));
-
+    rmChanIndxW1 = find(sum(isnan(currW1),2) == size(currW1,1));
+    rmChanIndxW2 = find(sum(isnan(currW2),2) == size(currW2,1));
+    
+    rmChanIndx = [rmChanIndxW1; rmChanIndxW2];
+    
     if ~isempty(rmChanIndx)
         currW1(rmChanIndx,:) = [];
         currW1(:,rmChanIndx) = [];
         currW2(rmChanIndx,:) = [];
         currW2(:,rmChanIndx) = [];
     end
-
+    
+    if isempty(currW1) || isempty(currW2)
+        continue
+    end
+    
     [currR, currP] = correlateMatrices(currW1, currW2);
     R(iW) = currR;
     P(iW) = currP;

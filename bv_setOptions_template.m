@@ -1,15 +1,15 @@
 % standard global variables file. Change according to your own needs.
 
-PATHS.ROOT          =   % topfolder, with the general functions and a folder with RAW data and a folder with the necessary subfunctions 
-rawDir              =   % name of the folder with all the RAW data
-sDir                =   % name of the to be created Subject folder
-sDirString          =   % string that is added to each subjectfolder (followed by a number)
-resultsDir          =   % name of the to be create results folder
-QCDir               =   % name of the QualityControl folder
-dataType            = 	% set data type (f.e. 'eeg', 'bdf')
-triggers.value      =   % trigger values of interest
-triggers.label      =   % respective labels for the values
-channels2beAnalyzed =   % set channels2beAnalyzed (can be 'eeg')
+PATHS.ROOT          =   '~/_Research/FE/';  % topfolder, with the general functions and a folder with RAW data and a folder with the necessary subfunctions 
+rawDir              =   'RAW';              % name of the folder with all the RAW data
+sDir                =   'Subjects';         % name of the to be created Subject folder
+sDirString          =   'pp';               % string that is added to each subjectfolder (followed by a number)
+resultsDir          =   'Results';          % name of the to be create results folder
+QCDir               =   'QC';               % name of the QualityControl folder
+dataType            = 	'bdf';              % set data type (f.e. 'eeg', 'bdf')
+triggers.value      =   [129 139];          % trigger values of interest
+triggers.label      =   {'Non Social', 'Social'};   % respective labels for the values
+channels2beAnalyzed =   'eeg';              % set channels2beAnalyzed (can be 'eeg')
 
 PATHS.SUBJECTS      = [PATHS.ROOT filesep sDir];               % path to subject directory
 PATHS.RESULTS       = [PATHS.ROOT filesep resultsDir];         % path to results directory

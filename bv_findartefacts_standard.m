@@ -1,4 +1,4 @@
-function findartefacts_testRetest(cfg)
+function bv_findartefacts_standard(cfg)
 
 saveData    = ft_getopt(cfg, 'saveData', 1);
 overwrite   = ft_getopt(cfg, 'overwrite',0);

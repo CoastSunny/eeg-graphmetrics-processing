@@ -9,12 +9,13 @@ end
 
 cfg = [];
 cfg.method      = 'mtmfft';
-cfg.taper       = 'dpss';
+cfg.taper       = 'hanning';
 cfg.output      = 'pow';
 cfg.tapsmofrq   = 4;
 cfg.foilim      = [freqrange(1) freqrange(2)];
 cfg.keeptrials  = 'yes';
-evalc('freq = ft_freqanalysis(cfg, data);');
+cfg.toi         = [min(data.time{1,1}):1/data.fsample:max(data.time{1,1})];
+freq = ft_freqanalysis(cfg, data);
 
 
 
