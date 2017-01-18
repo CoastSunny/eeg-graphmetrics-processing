@@ -7,7 +7,11 @@ varLim      = ft_getopt(cfg, 'varLim');
 invVarLim   = ft_getopt(cfg, 'invVarLim');
 kurtLim     = ft_getopt(cfg, 'kurtLim');
 rangeLim    = ft_getopt(cfg, 'rangeLim');
-zLim        = ft_getopt(cfg, 'zLim');
+zScoreLim   = ft_getopt(cfg, 'zScoreLim');
+vMaxLim     = ft_getopt(cfg, 'vMaxLim');
+
+freqFields  = fieldnames(freq);
+field2use   = freqFields{not(cellfun(@isempty, strfind(freqFields, 'spctrm')))};
 
 if (~isempty(betaLim) || ~isempty(gammaLim)) && nargin < 3
     error('detecting artefacts based on frequency power, but no frequency input found in function')
@@ -45,6 +49,15 @@ if ~isempty(rangeLim)
     doStandardArtefacts = 1;
     artefactMethods = cat(2, artefactMethods, 'range');
 end
+if ~isempty(zScoreLim)
+    doStandardArtefacts = 1;
+    artefactMethods = cat(2, artefactMethods, 'zScore');
+end
+if ~isempty(vMaxLim)
+    doStandardArtefacts = 1;
+    artefactMethods = cat(2, artefactMethods, 'vMax');
+end
+
 
 badChannels = [];
 badTrials = [];
@@ -76,6 +89,9 @@ if doStandardArtefacts
         end
         if ismember('range', artefactMethods)
             artefactdef.rangeLevels (:, i) = max(data.trial{i}, [], 2) - min(data.trial{i}, [], 2);
+        end
+        if ismember('vMax', artefactMethods)
+            artefactdef.vMax (:, i) = max(abs(data.trial{i}), [], 2);
         end
         
     end
@@ -117,20 +133,24 @@ if doStandardArtefacts
         artefactdef.allCounts = [artefactdef.allCounts counts.Range'];
         
     end
+    if ismember('vMax', artefactMethods)
+        
+        [badChannelVMax, badTrialVMax]  = find(artefactdef.vMax > vMaxLim);
+        badChannels = [badChannels; badChannelVMax];
+        badTrials = [badTrials; badTrialVMax];
+        counts.vMax    = hist(badChannelVMax, 1:length(data.label));
+        artefactdef.allCounts = [artefactdef.allCounts counts.vMax'];
+    end
+
 end
 
 if doStandardArtefacts
-
-
-    
-
-
     
     if ismember('betaPower', artefactMethods)
-        betaStart   = find(freq.freq == 10);
+        betaStart   = find(freq.freq == 13);
         betaEnd     = find(freq.freq == 25);
         
-        artefactdef.betaPower   = squeeze( mean( freq.powspctrm( :, :, betaStart:betaEnd), 3 ) );
+        artefactdef.betaPower   = squeeze( mean( freq.(field2use)( :, :, betaStart:betaEnd), 3 ) );
         artefactdef.betaPower   = artefactdef.betaPower';
         
         [badChannelBeta, badTrialBeta]  = find(artefactdef.betaPower > betaLim);
@@ -145,7 +165,7 @@ if doStandardArtefacts
         gammaStart  = find(freq.freq == 25);
         gammaEnd    = find(freq.freq == 50);
         
-        artefactdef.gammaPower  = squeeze( mean( freq.powspctrm( :, :, gammaStart:gammaEnd), 3 ) );
+        artefactdef.gammaPower  = squeeze( mean( freq.(field2use)( :, :, gammaStart:gammaEnd), 3 ) );
         artefactdef.gammaPower  = artefactdef.gammaPower';
     
         [badChannelGamma, badTrialGamma]    = find(artefactdef.gammaPower > gammaLim);
@@ -155,6 +175,56 @@ if doStandardArtefacts
         artefactdef.allCounts               = [artefactdef.allCounts counts.Gamma'];
         
     end
+    
+    if ismember('zScore', artefactMethods)
+        betaStart   = find(freq.freq == 13);
+        betaEnd     = find(freq.freq == 25);
+        gammaStart  = find(freq.freq == 25);
+        gammaEnd    = find(freq.freq == 50);
+        alphaStart  = find(freq.freq == 6);
+        alphaEnd    = find(freq.freq == 13);
+        thetaStart  = find(freq.freq == 3);
+        thetaEnd    = find(freq.freq == 6);
+        deltaStart  = find(freq.freq == 2);
+        deltaEnd    = find(freq.freq == 3);
+        
+        
+        artefactdef.delta.power = squeeze( mean( freq.(field2use)( :, :, deltaStart:deltaEnd), 3 ) )';        
+        artefactdef.theta.power = squeeze( mean( freq.(field2use)( :, :, thetaStart:thetaEnd), 3 ) )';        
+        artefactdef.alpha.power = squeeze( mean( freq.(field2use)( :, :, alphaStart:alphaEnd), 3 ) )';
+        artefactdef.beta.power  = squeeze( mean( freq.(field2use)( :, :, betaStart:betaEnd), 3 ) )';
+        artefactdef.gamma.power = squeeze( mean( freq.(field2use)( :, :, gammaStart:gammaEnd), 3 ) )';
+        
+        artefactdef.delta.zscore    = zscore(artefactdef.delta.power,[],1);
+        artefactdef.theta.zscore    = zscore(artefactdef.theta.power,[],1);
+        artefactdef.alpha.zscore    = zscore(artefactdef.alpha.power,[],1);
+        artefactdef.beta.zscore     = zscore(artefactdef.beta.power,[],1);
+        artefactdef.gamma.zscore    = zscore(artefactdef.gamma.power,[],1);
+        
+        [badChannelDeltaZscore, badTrialDeltaZscore]  = find(artefactdef.delta.zscore > zScoreLim);
+        [badChannelThetaZscore, badTrialThetaZscore]  = find(artefactdef.theta.zscore > zScoreLim);
+        [badChannelAlphaZscore, badTrialAlphaZscore]  = find(artefactdef.alpha.zscore > zScoreLim);
+        [badChannelBetaZscore,  badTrialBetaZscore]   = find(artefactdef.beta.zscore > zScoreLim);
+        [badChannelGammaZscore, badTrialGammaZscore]  = find(artefactdef.gamma.zscore > zScoreLim);
+        
+        badChannels     = [badChannels; badChannelDeltaZscore; ...
+            badChannelThetaZscore; badChannelAlphaZscore; badChannelBetaZscore; ...
+            badChannelGammaZscore];
+        
+        badTrials       = [badTrials; badTrialDeltaZscore; badTrialThetaZscore; ...
+            badTrialAlphaZscore; badTrialBetaZscore; badTrialGammaZscore];
+        
+        counts.deltaZscore  = hist(badChannelDeltaZscore, 1:length(data.label));
+        counts.thetaZscore  = hist(badChannelThetaZscore, 1:length(data.label));
+        counts.alphaZscore  = hist(badChannelAlphaZscore, 1:length(data.label));
+        counts.betaZscore   = hist(badChannelBetaZscore, 1:length(data.label));
+        counts.gammaZscore  = hist(badChannelGammaZscore, 1:length(data.label));
+       
+        artefactdef.allCounts               = [artefactdef.allCounts counts.deltaZscore' ...
+            counts.thetaZscore' counts.alphaZscore' counts.betaZscore' ...
+            counts.gammaZscore'];
+    end
+    
 end
 
 artefactdef.badPartsMatrix = unique([ badTrials badChannels ], 'rows');

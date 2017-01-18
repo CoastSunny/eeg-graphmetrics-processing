@@ -95,9 +95,11 @@ else
     badTimeData = [tmpBadTime{:}];
     
     if isempty(goodTrials)
-        vertLim = max(max(badTrialData));
+        tmp = max([data.trial{:}],[],2);
+        vertLim = mean(tmp);
     else
-        vertLim = max(max(goodTrialData));
+        tmp = max(goodTrialData, [], 2);
+        vertLim = nanmean(tmp);
     end
     
     limVector = vertLim:vertLim:vertLim*(size(trialData,1));
@@ -105,6 +107,9 @@ else
     
     newGoodData = goodTrialData + limMatrix;
     newBadData = badTrialData + limMatrix;
+    
+%     newGoodData = flipud(newGoodData);
+%     newBadData = flipud(newBadData);
     
     startVal    = 0;
     endVal      = horzLim;
