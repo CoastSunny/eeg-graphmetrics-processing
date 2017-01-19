@@ -14,9 +14,11 @@ reref       = ft_getopt(cfg, 'reref', 'no');
 rmChannels  = ft_getopt(cfg, 'rmChannels');
 lpfreq      = ft_getopt(cfg, 'lpfreq');
 
+cfgSave = [];
+
 eval(optionsFcn)
 
-analysisOrd = [];
+analysisOrd = {};
 
 try
     load([PATHS.SUBJECTS filesep currSubject filesep 'Subject.mat'])
@@ -24,7 +26,7 @@ catch
     error('Subject.mat file not found')
 end
 
-subjectdata.cfgs.preproc = cfg;
+subjectdata.cfgs.(outputStr) = cfg;
 
 disp(subjectdata.subjectName)
 
@@ -33,8 +35,10 @@ fprintf('\t Setting up for preprocessing ... ')
 hdrfile = subjectdata.PATHS.HDRFILE;
 dataset = subjectdata.PATHS.DATAFILE;
 
+subjectdata.rmChannels = rmChannels';
+
 cfg = [];
-cfg.channel = cat(2,'EEG', rmChannels);
+cfg.channel = cat(2,'EEG', strcat('-',rmChannels));
 cfg.dataset = dataset;
 cfg.headerfile = hdrfile;
 cfg.continuous = 'yes';
@@ -87,13 +91,11 @@ if ~isempty(resampleFs)
     data.trial{1}(end,:) = [];
     data.label(end) = [];
    
-    analysisOrd = [analysisOrd, '-res'];
+    analysisOrd = [analysisOrd, 'res'];
     
 end
 
-
-
-fprintf('\t Filtering data %s ... ', [subjectdata.subjectName '_preproc.mat'])
+fprintf('\t Filtering data  ... ')
 
 cfg = [];
 if ~isempty(hpfreq)
@@ -138,7 +140,7 @@ end
 
 evalc('data = ft_preprocessing(cfg, data);');
 
-analysisOrd = [analysisOrd, '-filt'];
+analysisOrd = [analysisOrd, 'filt'];
 
 
 fprintf('done!\n')
@@ -157,7 +159,7 @@ if ~isempty(trialfun)
     evalc('cfg = ft_definetrial(cfg)');
     evalc('data = ft_redefinetrial(cfg, data);');
     
-    analysisOrd = [analysisOrd, '-trial'];
+    analysisOrd = [analysisOrd, 'trial'];
     
     fprintf('done!\n')
 end
@@ -171,7 +173,7 @@ if strcmpi(reref, 'yes')
     evalc('data = ft_preprocessing(cfg,data);');
     fprintf('done! \n')
     
-    analysisOrd = [analysisOrd, '-reref'];
+    analysisOrd = [analysisOrd, 'reref'];
     
 end
     
@@ -179,11 +181,11 @@ if strcmpi(saveData, 'yes');
     subjectdata.PATHS.PREPROC = [subjectdata.PATHS.SUBJECTDIR ...
     filesep subjectdata.subjectName '_' outputStr '.mat'];
     
-    fprintf('\t saving data file ... ')
+    fprintf('\t saving data to %s ... ', [subjectdata.subjectName '_' outputStr '.mat'])
     save(subjectdata.PATHS.PREPROC, 'data')
     fprintf('done! \n')
     
-    subjectdata.analysisOrder = analysisOrd;
+    subjectdata.analysisOrder = strjoin(analysisOrd, '-');
 end
 
 

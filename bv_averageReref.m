@@ -7,31 +7,20 @@ outputStr   = ft_getopt(cfg, 'outputStr');
 optionsFcn  = ft_getopt(cfg, 'optionsFcn');
 refElectrode = ft_getopt(cfg, 'refElectrode');
 
-eval(optionsFcn)
-
-try
-    load([PATHS.SUBJECTS filesep currSubject filesep 'Subject.mat'])
-catch
-    error('Subject.mat file not found')
-end
-
-disp(subjectdata.subjectName)
-
 
 if nargin < 2
-    try
-        load(subjectdata.PATHS.(inputStr))
-    catch
-        error('no input data variable given and subjectdata.PATHS.COMPREMOVED does not exist')
-    end
-else
-    if ~isempty(inputStr)
-        error('Both input data variable and path name variable given. Please choose one')
-    end
+    disp(currSubject)
+    
+    eval(optionsFcn)
+    
+    subjectFolderPath = [PATHS.SUBJECTS filesep currSubject];
+    [subjectdata, data] = bv_check4data(subjectFolderPath, inputStr);
+    
+    subjectdata.cfgs.(outputStr) = cfg;
+    
 end
 
-
-fprintf('\t rereferencing data ...', currSubject)
+fprintf('\t rereferencing data ...')
 
 cfg = [];
 cfg.reref = 'yes';
@@ -43,13 +32,17 @@ fprintf('done! \n')
 if strcmpi(saveData, 'yes')
     outputFilename = [ currSubject '_' outputStr '.mat'];
     subjectdata.PATHS.REREF = [subjectdata.PATHS.SUBJECTDIR filesep outputFilename];
-    subjectdata.analysisOrder = cat(2, subjectdata.analysisOrder, '-reref');
+    
+    analysisOrder = strsplit(subjectdata.analysisOrder, '-');
+    analysisOrder = [analysisOrder outputStr];
+    analysisOrder = unique(analysisOrder, 'stable');
+    subjectdata.analysisOrder = strjoin(analysisOrder, '-');
     
     fprintf('\t saving preproc data to %s ... ', outputFilename)
     save([subjectdata.PATHS.REREF], 'data')
     fprintf('done! \n')
+    
+    fprintf('\t saving Subject.mat file ... ' )
+    save([subjectdata.PATHS.SUBJECTDIR filesep 'Subject.mat'], 'subjectdata')
+    fprintf('done! \n')
 end
-
-fprintf('\t saving Subject.mat file ... ' )
-save([subjectdata.PATHS.SUBJECTDIR filesep 'Subject.mat'], 'subjectdata')
-fprintf('done! \n')

@@ -1,7 +1,7 @@
-function comp = bv_compAnalysis(cfg, data)
+ function comp = bv_compAnalysis(cfg, data)
 
-% method      = ft_getopt(cfg, 'method', 'runica');
-% extended    = ft_getopt(cfg, 'extended', 0);
+method      = ft_getopt(cfg, 'method', 'runica');
+extended    = ft_getopt(cfg, 'extended', 0);
 saveData    = ft_getopt(cfg, 'saveData', 1);
 outputStr   = ft_getopt(cfg, 'outputStr', 'comp');
 inputFile   = ft_getopt(cfg, 'inputFile');
@@ -45,13 +45,14 @@ if ~isempty(inputFile)
     end
 end
 
+subjectdata.cfgs.(outputStr) = cfg;
 
 fprintf('\t calculating component analysis ... ')
 
 cfg = [];
-cfg.method = 'runica';
-cfg.runica.extended = 0;
-cfg.runica.pca      = rank([data.trial{:}]);
+cfg.method              = method;
+cfg.(method).extended   = 0;
+cfg.(method).pca        = rank([data.trial{:}]);
 evalc('comp = ft_componentanalysis(cfg, data);');
 
 fprintf('done! \n')
@@ -63,6 +64,11 @@ if strcmpi(saveData, 'yes')
 
     subjectdata.PATHS.COMP = [subjectdata.PATHS.SUBJECTDIR filesep compFilename];
     save(subjectdata.PATHS.COMP, 'comp')
+    
+    analysisOrder = strsplit(subjectdata.analysisOrder, '-');
+    analysisOrder = [analysisOrder outputStr];
+    analysisOrder = unique(analysisOrder, 'stable');
+    subjectdata.analysisOrder = strjoin(analysisOrder, '-');
     
     fprintf('done! \n')
 end

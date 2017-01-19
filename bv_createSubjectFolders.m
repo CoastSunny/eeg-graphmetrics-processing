@@ -68,6 +68,8 @@ for subjIndex = 1 %:length(uniqueSubjectNames);
     subjectdata.PATHS.HDRFILE = [PATHS.RAWS filesep hdrFile.name];
     [~, subjectdata.filename, ~] = fileparts(subjectdata.PATHS.DATAFILE);
     
+    subjectdata.date = date;
+    
     fprintf('\t saving Subject.mat...')
     save([subjectdata.PATHS.SUBJECTDIR filesep 'Subject'],'subjectdata');
     fprintf('done \n')

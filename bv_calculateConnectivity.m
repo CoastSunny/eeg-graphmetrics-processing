@@ -4,35 +4,28 @@ inputStr 	= ft_getopt(cfg, 'inputStr');
 outputStr   = ft_getopt(cfg, 'outputStr');
 currSubject = ft_getopt(cfg, 'currSubject');
 optionsFcn  = ft_getopt(cfg, 'optionsFcn');
-freqOutput  = ft_getopt(cfg, 'freqOutput');
+freqOutput  = ft_getopt(cfg, 'freqOutput','fourier');
 saveData    = ft_getopt(cfg, 'saveData');
 
-eval(optionsFcn)
-
-try
-    load([PATHS.SUBJECTS filesep currSubject filesep 'Subject.mat'])
-catch
-    error('Subject.mat file not found')
-end
-
-disp(subjectdata.subjectName)
-
 if nargin < 2
-    try
-        [~, filenameData, ~] = fileparts(subjectdata.PATHS.(inputStr));
-        
-        fprintf('\t loading %s ... ', [filenameData '.mat'])
-        load(subjectdata.PATHS.(inputStr))
-        fprintf('done! \n')
-    catch
-        error('No input data variable given and inputStr not given / found')
+    disp(currSubject)
+    
+    eval(optionsFcn)
+    
+    subjectFolderPath = [PATHS.SUBJECTS filesep currSubject];
+    [subjectdata, data] = bv_check4data(subjectFolderPath, inputStr);
+    
+    subjectdata.cfgs.(outputStr) = cfg;
+    
+    trueRmChannels = ft_channelselection({'all','-M1', '-M2'}, subjectdata.rmChannels);
+    
+    data.label = cat(1,data.label, trueRmChannels);
+    for iTrl = 1:length(data.trial)
+        data.trial{iTrl}(size(data.trial{iTrl},1)+1:size(data.trial{iTrl},1)+length(trueRmChannels), :) = NaN;
     end
+
 end
 
-data.label = cat(1,data.label, subjectdata.rmChannels);
-for iTrl = 1:length(data.trial)
-    data.trial{iTrl}(size(data.trial{iTrl},1)+1:size(data.trial{iTrl},1)+length(subjectdata.rmChannels), :) = NaN;
-end
 
 cfg = [];
 cfg.channel  = data.label;
@@ -56,6 +49,7 @@ cfg.keeptrials  = 'yes';
 cfg.tapsmofrq   = 2;
 evalc('freq            = ft_freqanalysis(cfg, data);');
 fprintf('done! \n')
+
 % freqFields  = fieldnames(freq);
 % field2use   = freqFields{not(cellfun(@isempty, strfind(freqFields, 'spctrm')))};
 %
@@ -77,11 +71,19 @@ if strcmpi(saveData, 'yes');
     fprintf('\t saving %s ... ', outputFilename)
     save(subjectdata.PATHS.(fieldname), 'connectivity')
     fprintf('done! \n')
+    
+    analysisOrder = strsplit(subjectdata.analysisOrder, '-');
+    analysisOrder = [analysisOrder outputStr];
+    analysisOrder = unique(analysisOrder, 'stable');
+    subjectdata.analysisOrder = strjoin(analysisOrder, '-');
+    
+    
+    fprintf('\t saving subjectdata variable to Subject.mat ... ')
+    save([subjectdata.PATHS.SUBJECTDIR filesep 'Subject.mat'], 'subjectdata')
+    fprintf('done! \n')
+    
 end
 
-fprintf('\t saving subjectdata variable to Subject.mat ... ')
-save([subjectdata.PATHS.SUBJECTDIR filesep 'Subject.mat'], 'subjectdata')
-fprintf('done! \n')
 
 
 

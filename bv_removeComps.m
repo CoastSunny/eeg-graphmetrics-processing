@@ -1,6 +1,5 @@
 function data = bv_removeComps(cfg, data, comp)
 
-
 currSubject = ft_getopt(cfg, 'currSubject');
 optionsFcn  = ft_getopt(cfg, 'optionsFcn');
 saveData    = ft_getopt(cfg, 'saveData');
@@ -8,44 +7,26 @@ outputStr   = ft_getopt(cfg, 'outputStr');
 dataStr     = ft_getopt(cfg, 'dataStr');
 compStr     = ft_getopt(cfg, 'compStr');
 
-if isempty(currSubject)
-    error('no cfg.currSubject given')
-end
-
-eval(optionsFcn)
-
-try
-    load([PATHS.SUBJECTS filesep currSubject filesep 'Subject.mat'])
-catch
-    error('Subject.mat file not found')
-end
-
-disp(subjectdata.subjectName)
-
 if nargin < 3
-    try
-        [~, filenameComp, ~] = fileparts(subjectdata.PATHS.(compStr));
-        
-        fprintf('\t loading %s.mat ... ', filenameComp)
-        load(subjectdata.PATHS.(compStr))
-        fprintf('done! \n')
-    catch
-        error('No input component variable given and no comp file found at subjectdata.PATHS.COMP')
+    
+    disp(currSubject)
+    eval(optionsFcn)
+    subjectFolderPath = [PATHS.SUBJECTS filesep currSubject];
+    
+    if isempty(dataStr)
+        error('cfg.dataStr not given while also no data input variable given')
     end
+    if isempty(compStr)
+        error('cfg.compStr not given while also no data input variable given')
+    end
+    if isempty(currSubject)
+        error('no cfg.currSubject while also no data/comp input variable given')
+    end
+    
+    [subjectdata, data, comp] = bv_check4data(subjectFolderPath, dataStr, compStr);
 end
 
-if nargin < 2
-    try
-        [~, filenameData, ~] = fileparts(subjectdata.PATHS.(dataStr));
-        
-        fprintf('\t loading %s.mat ... ', filenameData)
-        load(subjectdata.PATHS.(dataStr))
-        fprintf('done! \n')
-    catch
-        error('No input data variable given and no data file found at subjectdata.PATHS.PREPROC')
-    end
-end
-
+oldcfg = cfg;
 
 fprintf('\t preparing layout...')
 cfg = [];
@@ -59,18 +40,32 @@ fprintf('done! \n')
 
 fprintf('\t showing components ... \n')
 
+xScreenLength = 1;
+yScreenLength = 1;
+
+if exist('WindowSize', 'file')
+    [xScreenSize, yScreenSize] = WindowSize(0);
+    set(0, 'units', 'pixels')
+    realScreenSize = get(0, 'ScreenSize');
+    xDiff = xScreenSize / realScreenSize(3);
+    xScreenLength = xScreenLength * xDiff;
+    yDiff = yScreenSize / realScreenSize(4);
+    yScreenLength = yScreenLength * yDiff;
+end
+
 cfg = [];
 cfg.viewmode = 'component';
 cfg.layout = lay;
 cfg.ylim = [-2000 2000];
 cfg.blocksize = 30;
 evalc('ft_databrowser(cfg, comp)');
+set(gcf, 'units', 'normalized', 'Position', [0 0 xScreenLength/2 yScreenLength])
 
-cfg = [];
-cfg.viewmode = 'vertical';
-cfg.ylim = [-100 100];
-cfg.blocksize = 30;
-evalc('ft_databrowser(cfg, data)');
+% cfg = [];
+% cfg.viewmode = 'vertical';
+% cfg.ylim = [-100 100];
+% cfg.blocksize = 30;
+% evalc('ft_databrowser(cfg, data)');
 
 cfg = [];
 cfg.component = 1:30; % specify the component(s) that should be plotted
@@ -80,6 +75,9 @@ cfg.compscale = 'local';
 cfg.interactive = 'no';
 figure();
 evalc('ft_topoplotIC(cfg, comp);');
+set(gcf, 'units', 'normalized', 'Position', [xScreenLength/2 yScreenLength xScreenLength/2 yScreenLength])
+
+
 
 fprintf('\t press SPACE after inspecting components \n')
 pause;
@@ -98,7 +96,7 @@ if ~strcmp(rmComps, '')
         ' ... '], badComponents{:})
     
     badComponents = cellfun(@str2num, badComponents);
-    subjectdata.removedComps = badComponents;
+    oldcfg.removedComps = badComponents;
     
     cfg             = [];
     cfg.component   = badComponents;
@@ -107,21 +105,32 @@ if ~strcmp(rmComps, '')
     fprintf('done! \n')
     
     cRemFilename = [currSubject '_' outputStr '.mat'];
-    subjectdata.PATHS.COMPREMOVED = [subjectdata.PATHS.SUBJECTDIR filesep cRemFilename];
     
     if strcmpi(saveData, 'yes')
-        subjectdata.analysisOrder = cat(2, subjectdata.analysisOrder, '-comp');
-
+        subjectdata.PATHS.COMPREMOVED = [subjectdata.PATHS.SUBJECTDIR filesep cRemFilename];
+        
         fprintf('\t Saving %s ... ', cRemFilename)
         save(subjectdata.PATHS.COMPREMOVED, 'data')
+        fprintf('done! \n')
+        
+        analysisOrder = strsplit(subjectdata.analysisOrder, '-');
+        analysisOrder = [analysisOrder outputStr];
+        analysisOrder = unique(analysisOrder, 'stable');
+        subjectdata.analysisOrder = strjoin(analysisOrder, '-');
+        
+        subjectdata.cfgs.(outputStr) = oldcfg;
+        fprintf('\t Saving Subject.mat ... ')
+        save([subjectdata.PATHS.SUBJECTDIR filesep 'Subject.mat'], 'subjectdata')
         fprintf('done! \n')
     end
     
 else
-    subjectdata.PATHS.COMPREMOVED = [subjectdata.PATHS.PREPROC];
+    if strcmpi(saveData, 'yes')
+        
+        subjectdata.PATHS.COMPREMOVED = [subjectdata.PATHS.PREPROC];
+        subjectdata.cfgs.(outputStr) = oldcfg;
+        fprintf('\t Saving Subject.mat ... ')
+        save([subjectdata.PATHS.SUBJECTDIR filesep 'Subject.mat'], 'subjectdata')
+        fprintf('done! \n')
+    end
 end
-
-
-fprintf('\t Saving Subject.mat ... ')
-save([subjectdata.PATHS.SUBJECTDIR filesep 'Subject.mat'], 'subjectdata')
-fprintf('done! \n')
