@@ -6,18 +6,20 @@ currSubject = ft_getopt(cfg, 'currSubject');
 optionsFcn  = ft_getopt(cfg, 'optionsFcn');
 freqOutput  = ft_getopt(cfg, 'freqOutput','fourier');
 saveData    = ft_getopt(cfg, 'saveData');
+nTrials     = ft_getopt(cfg, 'nTrials');
 
 if nargin < 2
     disp(currSubject)
     
     eval(optionsFcn)
+    eval('setOptions')
     
     subjectFolderPath = [PATHS.SUBJECTS filesep currSubject];
     [subjectdata, data] = bv_check4data(subjectFolderPath, inputStr);
     
     subjectdata.cfgs.(outputStr) = cfg;
     
-    trueRmChannels = subjectdata.rmChannels(not(ismember(subjectdata.rmChannels, {'M1', 'M2'})));
+    trueRmChannels = subjectdata.rmChannels(not(ismember(subjectdata.rmChannels, OPTIONS.PREPROC.rmChannels)));
         
     data.label = cat(1,data.label, trueRmChannels);
     for iTrl = 1:length(data.trial)
@@ -47,13 +49,9 @@ cfg.taper       = 'hanning';
 cfg.output      = freqOutput;
 cfg.keeptrials  = 'yes';
 cfg.tapsmofrq   = 2;
+% cfg.trials      = 1:nTrials;
 evalc('freq            = ft_freqanalysis(cfg, data);');
 fprintf('done! \n')
-
-% freqFields  = fieldnames(freq);
-% field2use   = freqFields{not(cellfun(@isempty, strfind(freqFields, 'spctrm')))};
-%
-% figure; plot(freq.freq, log10(abs(real(squeeze(mean(freq.(field2use)))))))
 
 fprintf('\t connectivity analysis started ... ')
 cfg = [];

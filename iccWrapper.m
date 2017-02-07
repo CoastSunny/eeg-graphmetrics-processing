@@ -5,7 +5,7 @@ resultStr = {'wpli_debiased_delta.mat',...
     'wpli_debiased_beta.mat', ...
     'wpli_debiased_gamma.mat', };
 
-inputData = 'binaryRandom'; % weighted, binary, weightedRandom, binaryRandom
+inputData = 'weightedRandom'; % weighted, binary, weightedRandom, binaryRandom
 randomflag = 0;
 
 if strfind(inputData, 'Random') > 0
@@ -17,8 +17,10 @@ for i = 1:length(resultStr)
     fprintf('\t loading ... ')
     load(resultStr{i})
     fprintf('done! \n')
-    if isfield(ICCresults, inputData)
-        ICCresults = rmfield(ICCresults, inputData);
+    if exist('ICCresults', 'var')
+        if isfield(ICCresults, inputData)
+            ICCresults = rmfield(ICCresults, inputData);
+        end
     end
     
     metrics = fieldnames(graph.(inputData));
@@ -27,7 +29,7 @@ for i = 1:length(resultStr)
         currMetricName = metrics{j};
         currMetric = graph.(inputData).(currMetricName);
         if ~randomflag
-
+            
             currMetric = currMetric(~any(isnan(currMetric),2),:);
             currMetric = currMetric(~any(isinf(currMetric),2),:);
             output = ICC(currMetric, '1-k');

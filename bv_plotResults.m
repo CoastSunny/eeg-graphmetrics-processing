@@ -26,7 +26,6 @@ freqband = freqband{end};
 for iVar = 1:length(vars)
     currVar = vars{iVar};
 
-    
     switch currVar
         case 'conMatrices'
             
@@ -48,21 +47,21 @@ for iVar = 1:length(vars)
             if saveflag
                 fprintf('\t saving figure ... ')
                 filename = [freqband '_bar_corrConMatrices'];
-                export_fig([figureDir filesep filename], '-dpng', '-transparent', '-r300')
+                export_fig(varargout{iVar}, [figureDir filesep filename], '-dpng', '-transparent', '-r300')
                 fprintf('done! \n')
                 close all
             end
                 
             
-        case 'R_corrCorrMatrix'
+        case 'corrCorrMatrix'
             
-            if ~exist(currVar, 'var')
+            if ~isfield(results, 'corrCorrMatrix')
                 error('%s not found in %s', currVar, resultsName)
             end
             
             fprintf('\t creating R_conMatrices figure ... ')
             varargout{iVar} = figure;
-            imagesc(R_corrCorrMatrix)
+            imagesc(results.corrCorrMatrix)
             colorbar;
             axis('square')
             fprintf('done! \n')
@@ -70,7 +69,7 @@ for iVar = 1:length(vars)
             if saveflag
                 fprintf('\t saving figure ... ')
                 filename = 'imR_corrCorrMatrix.png';
-                print(varargout{iVar}, [figureDir filesep filename], '-dpng', '-r300')
+                export_fig(varargout{iVar}, [figureDir filesep filename], '-dpng', '-r300')
                 fprintf('done! \n')
                 close all
             end
@@ -89,34 +88,78 @@ for iVar = 1:length(vars)
             if saveflag
                 fprintf('\t saving figure ... ')
                 filename = [freqband '_scatterGrAvg'];
-                export_fig([figureDir filesep filename], '-dpng', '-transparent', '-r300')
+                export_fig(varargout{iVar}, [figureDir filesep filename], '-dpng', '-transparent', '-r300')
                 fprintf('done! \n')
                 close all
             end
             
         case 'plotGrpAvg'
             fprintf('\t plot group-averaged matrices... ')
-            varargout{iVar} = figure;
+%             varargout{iVar} = figure;
             W1 = squeeze(nanmean(Ws(:,:,:,1),3));
             W2 = squeeze(nanmean(Ws(:,:,:,2),3));
             
-            subplot(1,2,1)
+            fig1 = figure('units','normalized', 'Position', [0 0 0.5 1]);
             imagesc(W1)
             axis('square')
+            set(gca, 'CLim', [min([min(nansquareform(W1)) min(nansquareform(W2))]) ...
+                max([max(nansquareform(W1)) max(nansquareform(W2))])])
             colorbar
-            subplot(1,2,2)
+            set(gca, 'XTick', [], 'YTick', [])
+            
+            fig2 = figure('units','normalized', 'Position', [0 0 0.5 1]);
             imagesc(W2)
             axis('square')
             colorbar
-            set(gcf, 'units', 'normalized', 'Position', [0 0 1 1])
+%             set(gcf, 'units', 'normalized', 'Position', [0 0 1 1])
+            set(gca, 'CLim', [min([min(nansquareform(W1)) min(nansquareform(W2))]) ...
+                max([max(nansquareform(W1)) max(nansquareform(W2))])])
+            set(gca, 'XTick', [], 'YTick', [])
+            fprintf('done! \n')
             
             if saveflag
                 fprintf('\t saving figure ... ')
-                filename = 'groupAvgMat.png';
-                print(varargout{iVar}, [figureDir filesep filename], '-dpng', '-r300')
+                filename1 = 'groupAvgMat1';
+                filename2 = 'groupAvgMat2';
+
+                export_fig(fig1, [figureDir filesep filename1], '-dpng', '-transparent', '-r300')
+                export_fig(fig2, [figureDir filesep filename2], '-dpng', '-transparent', '-r300')
                 fprintf('done! \n')
                 close all
             end
+        case 'plotConnDist'
+%             rng(12857)
+            subjNr = 1:4; %randsample(1:size(Ws,3),4);
+            fprintf(['\t plot connectivity distribution for subjects: ' repmat('%1.0f, ', 1, 4)], subjNr)
+
+            fig_cDist = bv_plotConnDistr(Ws, subjNr);
+            fprintf('done! \n')
+            
+            if saveflag
+                fprintf('\t saving figure ... ')
+                filename = 'connetivityDistribution.png';
+%                 set(fig_cDist, 'units', 'Normalized', 'Position', [0 0 1 1])
+                
+                export_fig(fig_cDist, [figureDir filesep filename], '-dpng', '-transparent', '-r300')
+                fprintf('done! \n')
+                close all
+            end
+            
+        case 'plotUnitwiseDist'
+            fprintf('\t plot unitwise distribution...' )
+
+            fig_uDist = bv_plotUnitDist(results.r_unitwise);
+            fprintf('done! \n')
+            
+            if saveflag
+                fprintf('\t saving figure ... ')
+                filename = 'unitwiseDist.png';
+                set(fig_uDist, 'units', 'Normalized', 'Position', [0 0 1 1])
+                export_fig(fig_uDist, [figureDir filesep filename], '-dpng', '-transparent', '-r300')
+                fprintf('done! \n')
+                close all
+            end
+            
     end
 end
 

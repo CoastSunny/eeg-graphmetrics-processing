@@ -5,7 +5,7 @@ resultStr = {'wpli_debiased_delta.mat',...
     'wpli_debiased_beta.mat', ...
     'wpli_debiased_gamma.mat', };
 
-inputData = 'binaryRandom';
+inputData = 'weightedRandom';
 
 for i = 1:length(resultStr)
     disp(resultStr{i})
@@ -42,8 +42,8 @@ for i = 1:length(resultStr)
             
         case 'weightedRandom'
             
-            [graph.(inputData).CC, graph.(inputData).CPL, graph.(inputData).S] = ...
-                gr_calculateMetrics(Wrandom, 'weighted', {'CC', 'CPL', 'S'});
+            [graph.(inputData).CC, graph.(inputData).CPL] = ...
+                gr_calculateMetrics(Wrandom, 'weighted', {'CC', 'CPL'});
             
             fprintf('\t saving to %s ... ', resultStr{i})
             save(resultStr{i}, 'graph', '-append')

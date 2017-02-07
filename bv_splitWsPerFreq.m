@@ -1,7 +1,7 @@
 function bv_splitWsPerFreq(cfg, resultsName)
 
-freqLabels  = ft_getopt(cfg, 'freqLabels',{'delta', 'theta', 'alpha1', 'alpha2', 'beta', 'gamma'});
-freqRanges  = ft_getopt(cfg, 'freqRanges',{[1 3], [3 6], [6 9], [9 12], [12 25], [25 45]});
+freqLabels  = ft_getopt(cfg, 'freqLabels', {'alphaTheta', 'delta', 'theta', 'alpha1', 'alpha2',  'beta', 'gamma'});
+freqRanges  = ft_getopt(cfg, 'freqRanges', {[3 13], [1 3], [3 6], [6 9], [9 12], [12 25], [25 45]});
 
 if length(freqLabels) ~= length(freqRanges)
     error('freqRange and freqLabels not equal')

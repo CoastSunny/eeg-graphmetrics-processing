@@ -108,7 +108,7 @@ if ~automaticFlag
     
 end
 
-if ~strcmp(rmComps, '')
+if ~isnan(rmComps)
     
     rmCompIndx = rmComps;
     if rmCompIndx > 20

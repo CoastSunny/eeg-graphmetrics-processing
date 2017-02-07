@@ -71,7 +71,8 @@ if ~isempty(resampleFs)
     
     
     cfg = [];
-    cfg.resamplefs = resampleFs;
+    cfg.resamplefs  = resampleFs;
+    cfg.detrend     = 'yes';
     %     cfg.sampleindex = 'yes';
     % cfg.outputfile = 'preproc_resampled.mat';
     evalc('data = ft_resampledata(cfg, data);');

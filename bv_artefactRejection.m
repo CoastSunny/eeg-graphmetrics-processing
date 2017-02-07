@@ -52,7 +52,7 @@ oldData = data;
 
 fprintf('\t redefining triallength to %s seconds ... ', num2str(triallength))
 cfg = [];
-cfg.length = 4;
+cfg.length = triallength;
 cfg.overlap = 0;
 evalc('data = ft_redefinetrial(cfg, oldData);');
 fprintf('done! \n')

@@ -1,4 +1,4 @@
-function bv_createSubjectFolders(cfg)
+ function bv_createSubjectFolders(cfg)
 % Create the folder structure necessary to run analyses for baby
 % connectivity. Add subject specific strings. Also, add path to
 % raw data folder as a string to the function. Copies all necessary files
@@ -25,8 +25,10 @@ function bv_createSubjectFolders(cfg)
 
 overwrite   = ft_getopt(cfg, 'overwrite', 0);
 optionsFcn  = ft_getopt(cfg, 'optionsFcn');
+pathsFcn    = ft_getopt(cfg, 'pathsFcn');
 
 eval(optionsFcn);
+eval(pathsFcn);
 
 files = dir([PATHS.RAWS filesep '*' OPTIONS.sDirString '*']);
 fileNames = {files.name};
@@ -41,7 +43,7 @@ uniqueSubjectNames = subjectName;
 if ~exist(PATHS.SUBJECTS,'dir'); mkdir PATHS.SUBJECTS; end % create, if necessary, Subject folder
 
 removeIdx = 0;
-for subjIndex = 1 %:length(uniqueSubjectNames);
+for subjIndex = 1:length(uniqueSubjectNames);
     currSubjectName = uniqueSubjectNames{subjIndex};
     paths2SubjectFolder = [PATHS.SUBJECTS filesep currSubjectName];
     if ~exist(paths2SubjectFolder,'dir')

@@ -9,8 +9,10 @@ structVarFname  = ft_getopt(cfg, 'structVarFname');
 namesOnly       = ft_getopt(cfg, 'namesOnly', 'no');
 parentFolder    = ft_getopt(cfg, 'parentFolder');
 optionsFcn      = ft_getopt(cfg, 'optionsFcn');
+pathsFcn        = ft_getopt(cfg, 'pathsFcn');
 
 eval(optionsFcn)
+eval(pathsFcn)
 
 if ~exist(parentFolder, 'dir')
     error('Cannot find parent folder')
@@ -19,7 +21,7 @@ else
 end
 
 
-folders = dir([ PATHS.PARENTFOLDER filesep '*' sDirString '*']);
+folders = dir([ PATHS.PARENTFOLDER filesep '*' OPTIONS.sDirString '*']);
 names = {folders.name};
 names = names';            
 output = {};

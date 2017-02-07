@@ -8,19 +8,21 @@ for iGrph = 1:length(graphMetric)
     
     fprintf('\t Calculating %s ... ', grMetric)
     
+    counter = 0;
     for i = 1:n
         for j = 1:m
+            counter = counter + 1;
             currWs = Ws(:,:,:,i,j);
             
             switch grMetric
                 case 'CC'
-                    lng = printPercDone(n*m, i);
+                    lng = printPercDone(n*m, counter);
                     varargout{iGrph}(:,i,j) = calculateClusteringWs(currWs, edgeType);
                     fprintf(repmat('\b', 1, lng))
 
                     
                 case 'CPL'
-                    lng = printPercDone(n*m, i);
+                    lng = printPercDone(n*m, counter);
                     varargout{iGrph}(:,i,j) = calculatePathlengthWs(currWs, edgeType);
                     fprintf(repmat('\b', 1, lng))
                 case 'S'
