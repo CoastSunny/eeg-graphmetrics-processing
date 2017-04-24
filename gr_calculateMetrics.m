@@ -3,6 +3,7 @@ function varargout = gr_calculateMetrics(Ws, edgeType, graphMetric)
 n = size(Ws,4);
 m = size(Ws,5);
 
+varargout = cell(1,length(graphMetric));
 for iGrph = 1:length(graphMetric)
     grMetric = graphMetric{iGrph};
     
@@ -27,17 +28,19 @@ for iGrph = 1:length(graphMetric)
                     fprintf(repmat('\b', 1, lng))
                 case 'S'
 %                     lng = printPercDone(n*m, i);
-                    CCIndx = find(ismember(graphMetric, 'CC'));
-                    CPLIndx = find(ismember(graphMetric, 'CPL'));
                     
-                    currCC = varargout{CCIndx}(:,i,j);
-                    currCPL = varargout{CPLIndx}(:,i,j);
-                    
-                    varargout{iGrph}(:,i,j) = ...
-                        calculateSmallworldnessWs(currWs, currCPL, currCC, edgeType);            
+                    [varargout{iGrph}(:,i,j), CWnrm(:,i,j), CPLnrm(:,i,j)] = ...
+                        gr_calculateSmallworldnessWs(currWs, edgeType);            
 %                     fprintf(repmat('\b', 1, lng))
             end
         end
     end
     fprintf('done! \n')
 end
+
+if sum(ismember(graphMetric, 'S'))
+    varargout{end+1} = CWnrm;
+    varargout{end+1} = CPLnrm;
+end
+
+

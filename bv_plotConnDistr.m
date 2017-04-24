@@ -2,6 +2,7 @@ function fig = bv_plotConnDistr(Ws, subjNr)
 
 fig = figure; hold on
 y = subjNr;
+maxData = 0;
 for i = 1:length(y);
     
     W1 = Ws(:,:,y(i),1);
@@ -18,10 +19,12 @@ for i = 1:length(y);
     
     plot(x, [a1nrm; a2nrm], 'LineWidth', 3, 'color', [col col col])
     subjectName{i} = ['subj' num2str(i)];
+    maxData = max([maxData max(max([a1nrm; a2nrm]))]);
+    
 end
 
 h = findobj(gca,'Type','line');
 legend(h(1:2:end), subjectName, 'FontSize', 20)
-
+set(gca, 'XLim', [-0.3 1.1], 'YLim', [-0.1 maxData+0.1])
 legend('boxoff')
 hold off

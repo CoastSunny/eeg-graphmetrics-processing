@@ -24,8 +24,8 @@
 % createSubjectFolders()
 
 overwrite   = ft_getopt(cfg, 'overwrite', 0);
-optionsFcn  = ft_getopt(cfg, 'optionsFcn');
-pathsFcn    = ft_getopt(cfg, 'pathsFcn');
+optionsFcn  = ft_getopt(cfg, 'optionsFcn','setOptions');
+pathsFcn    = ft_getopt(cfg, 'pathsFcn','setPaths');
 
 eval(optionsFcn);
 eval(pathsFcn);

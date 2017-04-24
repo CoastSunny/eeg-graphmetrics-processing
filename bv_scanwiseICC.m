@@ -13,5 +13,11 @@ if length(sz) > 4
     error('More than 4 dimensions found. Unknown dimension ... ')
 end
 
-scAvg = squeeze(nanmean(nanmean(Ws,1),2));
+scAvg = zeros(size(Ws,3), size(Ws,4));
+for iWs = 1:size(Ws,3)
+    for jWs = 1:size(Ws,4)
+        scAvg(iWs, jWs) = nanmean(nansquareform(Ws(:,:,iWs, jWs)));
+    end
+end
+
 r = ICC(scAvg, '1-k');

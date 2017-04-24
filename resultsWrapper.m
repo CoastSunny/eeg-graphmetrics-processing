@@ -1,13 +1,17 @@
-resultStr = {'wpli_debiased_delta.mat',...
-    'wpli_debiased_theta.mat', ...
-    'wpli_debiased_alpha1.mat', ...
-    'wpli_debiased_alpha2.mat', ...
-    'wpli_debiased_alphaTheta.mat', ...
-    'wpli_debiased_beta.mat', ...
-    'wpli_debiased_gamma.mat', };
+clear results ICCresults graph
+str = 'pli';
 
-method = {'cleanSessions', 'conMatrixCor', 'corrCorrMatrix', 'corrGroupAvg', ...
-    'scanwise', 'unitwise', 'unitwise75'};
+a = dir([str '_*.mat']);
+resultStr = {a.name};
+
+% method = {'globCoV'};
+
+method = {'all'};
+
+if strcmp(method{:}, 'all')
+    method = {'cleanSessions', 'conMatrixCor', 'corrCorrMatrix', ...
+        'corrGroupAvg', 'scanwise', 'globConn', 'globCoV', 'globConnICC'};
+end
 
 for i = 1:length(resultStr)
     disp(resultStr{i})
@@ -52,8 +56,8 @@ for i = 1:length(resultStr)
                 W1 = nanmean(Ws(:,:,:,1),3);
                 W2 = nanmean(Ws(:,:,:,2),3);
                 
-                results.grpAvg.W1 = W1;
-                results.grpAvg.W2 = W2;
+                results.avgW1 = W1;
+                results.avgW2 = W2;
                 
                 rGrpAvg(i) = correlateMatrices(W1, W2);
                 
@@ -64,7 +68,6 @@ for i = 1:length(resultStr)
                 fprintf('done! \n')
             case 'scanwise'
                 fprintf('\t calculating scanwise reliability ... ')
-                pc = 0;
                 results.r_scanwise = bv_scanwiseICC(Ws);
                 fprintf('done! \n')
                 
@@ -77,7 +80,7 @@ for i = 1:length(resultStr)
 
                 pc = 0;
                 results.r_unitwise = bv_unitwiseICC(Ws, pc);
-                results.mr_unitwise = mean(results.r_unitwise);
+                results.mr_unitwise = median(results.r_unitwise);
                 fprintf('done! \n')                
                
                 fprintf('\t saving to %s ... ', resultStr{i})
@@ -88,13 +91,86 @@ for i = 1:length(resultStr)
                 fprintf('\t calculating top 25 perc unitwise reliability ... ')
                 pc = 75;
                 results.r_unitwise75 = bv_unitwiseICC(Ws, pc);
-                results.mr_unitwise75 = mean(results.r_unitwise75);
+                results.mr_unitwise75 = median(results.r_unitwise75);
                 fprintf('done! \n')
                 
                 fprintf('\t saving to %s ... ', resultStr{i})
                 save(resultStr{i}, 'results', '-append')
                 fprintf('done! \n')
                 
+            case 'globConn'
+                fprintf('\t calculating global connectivity ... ')
+                
+                if isfield(results, 'globConn')
+                    results = rmfield(results, 'globConn');
+                end
+                
+                
+                for iWs = 1:size(Ws,3)
+                    for jWs = 1:size(Ws,4)
+                        results.globConn(iWs, jWs) = nanmean(squareform(Ws(:,:,iWs, jWs)));                    
+                    end
+                end
+%                 results.globConn = squeeze(nanmean(nanmean(Ws,1),2));
+                fprintf('done! \n')   
+                
+                fprintf('\t saving to %s ... ', resultStr{i})
+                save(resultStr{i}, 'results', '-append')
+                fprintf('done! \n')
+                
+            case 'globCoV'
+                fprintf('\t calculating CoV on global connectivity ... ')
+                results.cov = calculateCoV(results.globConn(:,1));
+                bootstat = bootstrp(1000,@calculateCoV, results.globConn(:,1));
+                 
+                results.cov_CI(1) = prctile(bootstat, 2.5);
+                results.cov_CI(2)  = prctile(bootstat, 97.5);
+                
+                fprintf('done! \n')
+                   
+                fprintf('\t saving to %s ... ', resultStr{i})
+                save(resultStr{i}, 'results', '-append')
+                fprintf('done! \n')
+                
+            case 'globConnICC'
+                fprintf('\t calculating global connectivity ICC ... ')
+                results.globICC     = ICC(results.globConn, '1-k');
+                fprintf('done! \n')
+                
+                fprintf('\t bootstrapping to calculate CI ... ')
+                bootstat = bootstrp(1000,@(x) ICC(x, '1-k'), results.globConn);
+             
+                results.globICC_CI(1)  = prctile(bootstat, 2.5);
+                results.globICC_CI(2)  = prctile(bootstat, 97.5);
+                fprintf('done! \n')
+      
+                fprintf('\t saving to %s ... ', resultStr{i})
+                save(resultStr{i}, 'results', '-append')
+                fprintf('done! \n')
+            case 'degrees'
+                fprintf('\t calculting degree for averaged connectivity matrices ... ')
+                results.degAvgW1 = strengths_und(results.avgW1);
+                results.degAvgW2 = strengths_und(results.avgW2);
+                fprintf('done! \n')
+                
+                fprintf('\t saving to %s ... ', resultStr{i})
+                save(resultStr{i}, 'results', '-append')
+                fprintf('done! \n')
+                
+            case 'correlateStrongestMatrices'
+                avgW = squeeze(mean(mean(Ws,3),4));
+                avgWStrong = double(avgW > prctile(squareform(avgW),75));
+                
+                WsStrong = Ws.*repmat(avgWStrong, 1,1, 39,2);
+                WsStrong(WsStrong == 0) = NaN;
+                
+                R = correlateMultipleWs(WsStrong(:,:,:,1), WsStrong(:,:,:,2));
+                
+                results.conMatrices75 = R;
+                   
+                fprintf('\t saving to %s ... ', resultStr{i})
+                save(resultStr{i}, 'results', '-append')
+                fprintf('done! \n')
                 
             case 'randomizeWeightedNetworks'
                 if exist('Wrandom', 'var')
@@ -114,6 +190,7 @@ for i = 1:length(resultStr)
                 save(resultStr{i}, 'Wrandom', '-append')
                 fprintf('done! \n')
                 
+
             case 'randomizeBinaryNetworks'
                 if exist('Brandom', 'var')
                     clear Brandom
@@ -121,9 +198,8 @@ for i = 1:length(resultStr)
                 
                 m = size(Ws,4);
                 for j = 1:m
+                    
                     fprintf('\t randomizing networks session %1.0f ... ', j)
-                    
-                    
                     
                     currWs = Ws(:,:,:,j);
                     nans = isnan(currWs);
@@ -131,11 +207,12 @@ for i = 1:length(resultStr)
                     BrandMat = bv_randomizeBinaryMatrices(currWs_thr, 100);
                     BrandMat(nans) = NaN;
                     Brandom(:,:,:,:,j) = BrandMat;
+                
                 end
                 
                 fprintf('\t saving to %s ... ', resultStr{i})
                 save(resultStr{i}, 'Brandom', '-append')
-                fprintf('done! \n')
+                fprintf('done! \n')                
                 
             otherwise
                 error('Unknown method')

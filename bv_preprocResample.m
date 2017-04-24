@@ -38,7 +38,12 @@ dataset = subjectdata.PATHS.DATAFILE;
 subjectdata.rmChannels = rmChannels';
 
 cfg = [];
-cfg.channel = cat(2,'EEG', strcat('-',rmChannels));
+
+if ~isempty(rmChannels)
+    cfg.channel = cat(2,'EEG', strcat('-',rmChannels));
+else
+    cfg.channel = cat(2,'EEG');
+end
 cfg.dataset = dataset;
 cfg.headerfile = hdrfile;
 cfg.continuous = 'yes';
@@ -96,14 +101,16 @@ if ~isempty(resampleFs)
     
 end
 
-fprintf('\t Filtering data  ... ')
-
+fprintf('\t Filtering data  ... \n')
+fprintf('\t\t')
 cfg = [];
 if ~isempty(hpfreq)
     cfg.hpfilter            = 'yes';
     cfg.hpfreq              = hpfreq;
     cfg.hpfilttype          = filttype;
     cfg.hpinstabilityfix    = 'reduce';
+    
+    fprintf('hpfilter: %1.1f ', hpfreq)
     
     if strcmpi(filttype, 'firws')
         cfg.hpfiltord  = floor(2048*4.8);
@@ -114,6 +121,8 @@ if ~isempty(lpfreq)
     cfg.lpfreq              = lpfreq;
     cfg.lpfilttype          = filttype;
     cfg.lpinstabilityfix    = 'reduce';
+    
+    fprintf('lpfilter: %1.1f ', lpfreq)
     
     if strcmpi(filttype, 'firws')
         cfg.hpfiltord  = floor(2048*4.8);
@@ -128,6 +137,8 @@ if ~isempty(notchfreq)
         bsFreq(i,:) = [notchfreq*i - 2, notchfreq*i + 2];
     end
     
+    fprintf('notchfilter: %1.1f ', notchfreq)
+    
     cfg.bsfilter    = 'yes';
     cfg.bsfreq      = bsFreq;
     cfg.bsfilttype  = 'but';
@@ -138,6 +149,8 @@ if ~isempty(notchfreq)
 %     end
     
 end
+
+cfg.padding = 10;
 
 evalc('data = ft_preprocessing(cfg, data);');
 

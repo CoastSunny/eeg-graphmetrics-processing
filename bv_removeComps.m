@@ -84,7 +84,7 @@ if ~automaticFlag
     % evalc('ft_databrowser(cfg, data)');
     
     cfg = [];
-    cfg.component = 1:30; % specify the component(s) that should be plotted
+    cfg.component = 1:length(comp.label); % specify the component(s) that should be plotted
     cfg.layout    = 'EEG1010'; % specify the layout file that should be used for plotting
     cfg.comment   = 'no';
     cfg.compscale = 'local';

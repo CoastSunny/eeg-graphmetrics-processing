@@ -91,7 +91,9 @@ if doStandardArtefacts
             artefactdef.rangeLevels (:, i) = max(data.trial{i}, [], 2) - min(data.trial{i}, [], 2);
         end
         if ismember('vMax', artefactMethods)
-            artefactdef.vMax (:, i) = max(abs(data.trial{i}), [], 2);
+            artefactdef.vMax(:, i) = max(data.trial{i}, [], 2);
+            artefactdef.vMin(:, i) = min(data.trial{i}, [], 2);
+            artefactdef.vAmp(:, i) = artefactdef.vMax(:, i) - artefactdef.vMin(:, i);
         end
         
     end
@@ -135,7 +137,7 @@ if doStandardArtefacts
     end
     if ismember('vMax', artefactMethods)
         
-        [badChannelVMax, badTrialVMax]  = find(artefactdef.vMax > vMaxLim);
+        [badChannelVMax, badTrialVMax]  = find(artefactdef.vAmp > vMaxLim);
         badChannels = [badChannels; badChannelVMax];
         badTrials = [badTrials; badTrialVMax];
         counts.vMax    = hist(badChannelVMax, 1:length(data.label));

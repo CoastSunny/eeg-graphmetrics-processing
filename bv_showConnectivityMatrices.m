@@ -8,6 +8,12 @@ saveFigures = ft_getopt(cfg, 'saveFigures');
 freqLabel   = ft_getopt(cfg, 'freqLabel');
 freqRange   = ft_getopt(cfg, 'freqRange');
 
+if ~iscell(freqLabel)
+    freqLabel = {freqLabel};
+end
+if ~iscell(freqRange)
+    freqRange = {freqRange};
+end
 
 if nargin < 2
     disp(currSubject)

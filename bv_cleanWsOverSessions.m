@@ -9,7 +9,7 @@ for iW = 1:n
     
     for jW = 1:m
         currW = currWs(:,:,jW);
-        currW = normalizeW(currW);
+%         currW = normalizeW(currW);
         nanChans = find(sum(isnan(currW)) == size(currW,2));
         rmChannels = unique([rmChannels nanChans]);
         currWs(:,:,jW) = currW;

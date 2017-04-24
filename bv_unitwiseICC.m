@@ -19,7 +19,7 @@ if nargin < 2
     pc = 0;
 end
 
-sqAvg = squareform(avg);
+sqAvg = nansquareform(avg);
 Y = prctile(sqAvg, pc);
 thr = sqAvg>Y;
     
@@ -27,8 +27,8 @@ n = size(Ws,3);
 sqWs1 = zeros(n, sum(thr));
 sqWs2 = zeros(n, sum(thr));
 for i = 1:n;
-    currSq1 = squareform(Ws(:,:,i,1));
-    currSq2 = squareform(Ws(:,:,i,2));
+    currSq1 = nansquareform(Ws(:,:,i,1));
+    currSq2 = nansquareform(Ws(:,:,i,2));
     
     sqWs1(i,:) = currSq1(thr);
     sqWs2(i,:) = currSq2(thr);

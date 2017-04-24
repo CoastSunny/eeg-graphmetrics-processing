@@ -4,6 +4,7 @@ function Wrandomized = bv_randomizeWeightedMatrices(Ws, m)
 Wrandomized = zeros([size(Ws) m]);
 counter = 0;
 n = size(Ws,3);
+rng(100000)
 for iW = 1:n
     currW = Ws(:,:,iW);
 

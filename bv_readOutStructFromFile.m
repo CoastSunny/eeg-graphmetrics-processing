@@ -8,8 +8,8 @@ structFileName  = ft_getopt(cfg, 'structFileName');
 structVarFname  = ft_getopt(cfg, 'structVarFname');
 namesOnly       = ft_getopt(cfg, 'namesOnly', 'no');
 parentFolder    = ft_getopt(cfg, 'parentFolder');
-optionsFcn      = ft_getopt(cfg, 'optionsFcn');
-pathsFcn        = ft_getopt(cfg, 'pathsFcn');
+optionsFcn      = ft_getopt(cfg, 'optionsFcn', 'setOptions');
+pathsFcn        = ft_getopt(cfg, 'pathsFcn', 'setPaths');
 
 eval(optionsFcn)
 eval(pathsFcn)

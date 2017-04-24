@@ -80,7 +80,7 @@ for iVar = 1:length(vars)
             W1 = squeeze(nanmean(Ws(:,:,:,1),3));
             W2 = squeeze(nanmean(Ws(:,:,:,2),3));
             
-            scatter(squareform(W1), squareform(W2))
+            scatter(squareform(W1), squareform(W2), 10, [0.5 0.5 0.5], 'filled')
             title([freqband ' group averaged scatterplot'], 'FontSize', 20)
             axis('square')
             fprintf('done! \n')
@@ -159,6 +159,41 @@ for iVar = 1:length(vars)
                 fprintf('done! \n')
                 close all
             end
+            
+        case 'degreeTopoplot'
+            fprintf('\t topoplot degree ...' )
+            
+            xmax = max([sum(results.avgW1), sum(results.avgW2)]);
+            xmin = min([sum(results.avgW1), sum(results.avgW2)]);
+            
+            evalc('degtop1 = topoplotWrapper(sum(results.avgW1), chans);');
+            evalc('degtop2 = topoplotWrapper(sum(results.avgW2), chans);');
+            
+            fprintf('done! \n')
+            if saveflag
+                fprintf('\t saving figure ... ')
+                filename1 = 'degreesTopo1.png';
+                filename2 = 'degreesTopo2.png';
+%                 set(degtop1, 'units', 'Normalized', 'Position', [0 0 0.5 1])
+%                 set(degtop2, 'units', 'Normalized', 'Position', [0 0 0.5 1])
+                
+                export_fig(degtop1, [figureDir filesep filename1], '-dpng', '-transparent', '-r300')
+                export_fig(degtop2, [figureDir filesep filename2], '-dpng', '-transparent', '-r300')
+                
+                fprintf('done! \n')
+                close all
+            end
+            
+        case 'ccTopoplot'
+            W1nrm = weight_conversion(results.avgW1, 'normalize');
+            W2nrm = weight_conversion(results.avgW2, 'normalize');
+            
+            C1 = clustering_coef_wu(W1nrm);
+            C2 = clustering_coef_wu(W2nrm);
+                 
+            evalc('ctop1 = topoplotWrapper(C1, chans);');
+            evalc('ctop2 = topoplotWrapper(C2, chans);');
+            
             
     end
 end

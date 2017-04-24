@@ -1,11 +1,11 @@
-resultStr = {'wpli_debiased_delta.mat',...
-    'wpli_debiased_theta.mat', ...
-    'wpli_debiased_alpha1.mat', ...
-    'wpli_debiased_alpha2.mat', ...
-    'wpli_debiased_beta.mat', ...
-    'wpli_debiased_gamma.mat', };
+str = 'wpli_debiased';
 
-inputData = 'weightedRandom';
+a = dir([str '_*.mat']);
+resultStr = {a.name};
+
+% resultStr = {    
+inputData = 'weighted';
+thresholds = [0];
 
 for i = 1:length(resultStr)
     disp(resultStr{i})
@@ -15,26 +15,51 @@ for i = 1:length(resultStr)
     
     switch inputData
         case 'weighted'
-            [graph.(inputData).CC, graph.(inputData).CPL, graph.(inputData).S] = gr_calculateMetrics(Ws, 'weighted', {'CC', 'CPL', 'S'});
+            range = [0.001 1];
+            
+            a = (range(2)-range(1))/(max(Ws(:))-min(Ws(:)));
+            b = range(2) - a * max(Ws(:));
+            Wsnrm = a * Ws + b;
+            
+            for iT = 1:length(thresholds)
+                
+%                 WsThr = Wsnrm.*double(Wsnrm>thresholds(iT));
+                
+                [CC(:,:,iT), CPL(:,:,iT), S(:,:,iT), CCnrm(:,:,iT), CPLnrm(:,:,iT)] = gr_calculateMetrics(Ws, 'weighted', {'CC', 'CPL', 'S'});
 
+%                 [graph.(inputData).CC(:,:,iT), graph.(inputData).CPL(:,:,iT)] = gr_calculateMetrics(WsThr, 'weighted', {'CC', 'CPL'});
+                
+            end
+            
+            graphResults.(inputData).CC = CC;
+            graphResults.(inputData).CPL = CPL;
+            graphResults.(inputData).S = S;
+            graphResults.(inputData).CCnrm = CCnrm;
+            graphResults.(inputData).CPLnrm = CPLnrm;
+            
+%             graphResults.(inputData).degree = squeeze(mean(Ws));
+            
+            
+            graphResults.(inputData).thresholds = thresholds;
             fprintf('\t saving to %s ... ', resultStr{i})
-            save(resultStr{i}, 'graph', '-append')
+            save(resultStr{i}, 'graphResults', '-append')
             fprintf('done! \n')
+            
             
         case 'binary'
             nans = isnan(Ws);
             Bs = double(Ws>0.15);
             Bs(nans) = NaN;
-            [graph.(inputData).CC, graph.(inputData).CPL, graph.(inputData).S] = ...
-                gr_calculateMetrics(Bs, 'binary', {'CC', 'CPL', 'S'});
+            [graph.(inputData).CC, graph.(inputData).CPL] = ...
+                gr_calculateMetrics(Bs, 'binary', {'CC', 'CPL'});
          
             fprintf('\t saving to %s ... ', resultStr{i})
             save(resultStr{i}, 'graph', '-append')
             fprintf('done! \n')
             
         case 'binaryRandom'
-            [graph.(inputData).CC, graph.(inputData).CPL, graph.(inputData).S] = ...
-                gr_calculateMetrics(Brandom, 'binary', {'CC', 'CPL', 'S'});
+            [graph.(inputData).CC, graph.(inputData).CPL] = ...
+                gr_calculateMetrics(Brandom, 'binary', {'CC', 'CPL'});
                         
             fprintf('\t saving to %s ... ', resultStr{i})
             save(resultStr{i}, 'graph', '-append')

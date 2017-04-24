@@ -8,6 +8,7 @@ function [trl, event] = trialfun_YOUth_testRetest_resampled(cfg)
 
 % load event and hdr
 event = ft_read_event(cfg.dataset);
+event(1) = [];
 hdr = ft_read_header(cfg.headerfile);
 
 % remove all non-status triggers

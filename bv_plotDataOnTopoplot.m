@@ -1,9 +1,9 @@
-function bv_plotDataOnTopoplot(data, vect, labels)
+function bv_plotDataOnTopoplot(datalabel, vect, labels)
 
 
 fprintf('preparing layout...')
 cfg = [];
-cfg.channel  = data.label;
+cfg.channel  = datalabel;
 cfg.layout   = 'EEG1010';
 cfg.feedback = 'yes';
 cfg.skipcomnt  = 'yes';

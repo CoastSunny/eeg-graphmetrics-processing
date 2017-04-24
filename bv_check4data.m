@@ -12,7 +12,7 @@ end
 for i = 1:nArgs
     try
         [~, filename, ext] = fileparts(subjectdata.PATHS.(varargin{i}));
-        fprintf('\t loading %s.%s ... ', filename, ext) 
+        fprintf('\t loading %s%s ... ', filename, ext) 
         output = load(subjectdata.PATHS.(varargin{i}));
         fprintf('done! \n')
         fields = fieldnames(output);

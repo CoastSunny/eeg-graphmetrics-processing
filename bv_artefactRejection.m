@@ -116,7 +116,7 @@ if strcmpi(showFigures, 'yes')
     cfg.horzLim         = 'full';
     cfg.scroll          = 0;
     cfg.visible         = 'on';
-    cfg.triallength     = 5;
+    cfg.triallength     = triallength;
     scrollPlot          = scrollPlotData(cfg, data);
     fprintf('done! \n')
 %     set(gcf, 'units', 'normalized', 'Position', [xScreenLength/2 yScreenLength xScreenLength/2 yScreenLength])
@@ -252,6 +252,7 @@ if strcmpi(rmTrials, 'yes')
         cfg.invVarLim   = invVarLim;
         cfg.kurtLim     = kurtLim;
         cfg.zScoreLim   = zScoreLim;
+        cfg.vMaxLim     = vMaxLim;
         
         evalc('[artefactdef, counts] = bvLL_artefactDetection(cfg, data, freq);');
         
@@ -260,7 +261,7 @@ if strcmpi(rmTrials, 'yes')
         cfg = [];
         cfg.badPartsMatrix  = artefactdef.badPartsMatrix;
         cfg.horzLim         = 'full';
-        cfg.triallength     = 1;
+%         cfg.triallength     = 1;
         cfg.scroll          = 0;
         cfg.visible         = 'on';
         cfg.triallength     = 5;
