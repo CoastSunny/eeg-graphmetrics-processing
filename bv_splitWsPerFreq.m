@@ -1,7 +1,7 @@
 function bv_splitWsPerFreq(cfg, resultsName)
 
 freqLabels  = ft_getopt(cfg, 'freqLabels', {'delta', 'theta', 'alpha1', 'alpha2',  'beta', 'gamma'});
-freqRanges  = ft_getopt(cfg, 'freqRanges', {[1 3], [3 6], [6 9], [9 12], [12 25], [25 45]});
+freqRanges  = ft_getopt(cfg, 'freqRanges', {[0.1 3], [3 6], [6 9], [9 12], [12 25], [25 45]});
 
 if length(freqLabels) ~= length(freqRanges)
     error('freqRange and freqLabels not equal')
@@ -58,10 +58,10 @@ else
         
         freqband = cLabel;
         
-        startIndx = find(freq == cRange(1));
-        endIndx = find(freq == cRange(2));
+        [~, startIndx] = min(abs(freq - cRange(1)));
+        [~, endIndx] = min(abs(freq - cRange(2)));
         
-        Ws = squeeze(mean(origWs(:,:,startIndx:endIndx,:,:),3));
+        Ws = squeeze(nanmean(origWs(:,:,startIndx:endIndx,:,:),3));
         
         dims = strsplit(origDims, '_');
         dims(3) = [];

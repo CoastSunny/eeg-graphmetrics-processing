@@ -1,11 +1,12 @@
-str = 'wpli_debiased';
+str = 'pli5';
 
 a = dir([str '_*.mat']);
 resultStr = {a.name};
 
-% resultStr = {    
+% resultStr = {
 inputData = 'weighted';
-thresholds = [0];
+
+graphMetrics = {'Q'};
 
 for i = 1:length(resultStr)
     disp(resultStr{i})
@@ -15,32 +16,36 @@ for i = 1:length(resultStr)
     
     switch inputData
         case 'weighted'
-            range = [0.001 1];
+            %             range = [0.001 1];
             
-            a = (range(2)-range(1))/(max(Ws(:))-min(Ws(:)));
-            b = range(2) - a * max(Ws(:));
-            Wsnrm = a * Ws + b;
+            %             a = (range(2)-range(1))/(max(Ws(:))-min(Ws(:)));
+            %             b = range(2) - a * max(Ws(:));
+            %             Wsnrm = a * Ws + b;
+            %
             
-            for iT = 1:length(thresholds)
-                
-%                 WsThr = Wsnrm.*double(Wsnrm>thresholds(iT));
-                
-                [CC(:,:,iT), CPL(:,:,iT), S(:,:,iT), CCnrm(:,:,iT), CPLnrm(:,:,iT)] = gr_calculateMetrics(Ws, 'weighted', {'CC', 'CPL', 'S'});
-
-%                 [graph.(inputData).CC(:,:,iT), graph.(inputData).CPL(:,:,iT)] = gr_calculateMetrics(WsThr, 'weighted', {'CC', 'CPL'});
-                
+            for iMetrics = 1:length(graphMetrics)
+                switch graphMetrics{iMetrics}
+                    case 'CC'
+                        CC = gr_calculateMetrics(Ws, 'weighted', {'CC'});
+                        graphResults.(inputData).CC = CC;
+                    case 'CPL'
+                        CPL = gr_calculateMetrics(Ws, 'weighted', {'CPL'});
+                        graphResults.(inputData).CPL = CPL;
+                    case 'S'
+                        [S, CCnrm, CPLnrm] = gr_calculateMetrics(Ws, 'weighted', {'S'});
+                        graphResults.(inputData).S = S;
+                        graphResults.(inputData).CCnrm = CCnrm;
+                        graphResults.(inputData).CPLnrm = CPLnrm;
+                    case 'Q'
+                        [Ci, Q] = gr_calculateMetrics(Ws, 'weighted', {'Q'});
+                        graphResults.(inputData).Q = Q;
+                        graphResults.(inputData).Ci = Ci;
+                    case 'degree'
+                        graphResults.(inputData).degree = squeeze(nanmean(Ws));
+                end
             end
             
-            graphResults.(inputData).CC = CC;
-            graphResults.(inputData).CPL = CPL;
-            graphResults.(inputData).S = S;
-            graphResults.(inputData).CCnrm = CCnrm;
-            graphResults.(inputData).CPLnrm = CPLnrm;
             
-%             graphResults.(inputData).degree = squeeze(mean(Ws));
-            
-            
-            graphResults.(inputData).thresholds = thresholds;
             fprintf('\t saving to %s ... ', resultStr{i})
             save(resultStr{i}, 'graphResults', '-append')
             fprintf('done! \n')
@@ -52,7 +57,7 @@ for i = 1:length(resultStr)
             Bs(nans) = NaN;
             [graph.(inputData).CC, graph.(inputData).CPL] = ...
                 gr_calculateMetrics(Bs, 'binary', {'CC', 'CPL'});
-         
+            
             fprintf('\t saving to %s ... ', resultStr{i})
             save(resultStr{i}, 'graph', '-append')
             fprintf('done! \n')
@@ -60,7 +65,7 @@ for i = 1:length(resultStr)
         case 'binaryRandom'
             [graph.(inputData).CC, graph.(inputData).CPL] = ...
                 gr_calculateMetrics(Brandom, 'binary', {'CC', 'CPL'});
-                        
+            
             fprintf('\t saving to %s ... ', resultStr{i})
             save(resultStr{i}, 'graph', '-append')
             fprintf('done! \n')
@@ -74,7 +79,6 @@ for i = 1:length(resultStr)
             save(resultStr{i}, 'graph', '-append')
             fprintf('done! \n')
     end
-  
+    
 end
 
-            

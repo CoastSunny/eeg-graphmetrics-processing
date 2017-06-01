@@ -79,8 +79,8 @@ for iVar = 1:length(vars)
             varargout{iVar} = figure;
             W1 = squeeze(nanmean(Ws(:,:,:,1),3));
             W2 = squeeze(nanmean(Ws(:,:,:,2),3));
-            
-            scatter(squareform(W1), squareform(W2), 10, [0.5 0.5 0.5], 'filled')
+            00
+            scatter(squareform(W1), squareform(W2), 20, [0.5 0.5 0.5], 'filled')
             title([freqband ' group averaged scatterplot'], 'FontSize', 20)
             axis('square')
             fprintf('done! \n')
@@ -148,7 +148,7 @@ for iVar = 1:length(vars)
         case 'plotUnitwiseDist'
             fprintf('\t plot unitwise distribution...' )
 
-            fig_uDist = bv_plotUnitDist(results.r_unitwise);
+            bv_plotUnitDist(results.r_unitwise);
             fprintf('done! \n')
             
             if saveflag

@@ -1,13 +1,12 @@
 function [output, names] = bv_readOutStructFromFile(cfg)
 
-startSubject    = ft_getopt(cfg, 'startSubject', 1);
-endSubject      = ft_getopt(cfg, 'endSubject', 'end');
+subjects        = ft_getopt(cfg, 'subjects', 'all');
 fields          = ft_getopt(cfg, 'fields');
 analysisTree    = ft_getopt(cfg, 'analysisTree');
 structFileName  = ft_getopt(cfg, 'structFileName');
 structVarFname  = ft_getopt(cfg, 'structVarFname');
 namesOnly       = ft_getopt(cfg, 'namesOnly', 'no');
-parentFolder    = ft_getopt(cfg, 'parentFolder');
+parentFolder    = ft_getopt(cfg, 'parentFolder', 'Subjects');
 optionsFcn      = ft_getopt(cfg, 'optionsFcn', 'setOptions');
 pathsFcn        = ft_getopt(cfg, 'pathsFcn', 'setPaths');
 
@@ -20,13 +19,11 @@ else
     PATHS.PARENTFOLDER = [PATHS.ROOT filesep parentFolder];
 end
 
-
 folders = dir([ PATHS.PARENTFOLDER filesep '*' OPTIONS.sDirString '*']);
 names = {folders.name};
-names = names';            
-output = {};
+names = names';
 
-if strcmpi(namesOnly, 'yes') 
+if strcmpi(namesOnly, 'yes')
     return
 end
 
@@ -34,20 +31,27 @@ if ischar(fields)
     fields = {fields};
 end
 
-if ischar(startSubject)
-    startSubject = find(~cellfun(@isempty, strfind(names, startSubject)));
-end
-if ischar(endSubject)
-    if strcmp(endSubject, 'end')
-        endSubject = length(names);
-    else
-        endSubject = find(~cellfun(@isempty, strfind(names, endSubject)));
+if strcmpi(subjects, 'all')
+    subjectsVect = 1:length(names);
+else
+    
+    fun = @(s)~cellfun('isempty',strfind(names,s));
+    out = cellfun(fun,subjects','UniformOutput',false);
+    subjectsVect = find(any(horzcat(out{:}),2));
+    
+    if isempty(subjectsVect)
+        error('Subject names not found')
     end
 end
+% output = cell(length(subjectsVect),1);
 
-for iSubject = startSubject:endSubject
-    currSubjectName = names{iSubject};
-%     disp(currSubjectName)
+counter = 0;
+
+for iSubject = 1:length(subjectsVect)
+    counter = counter + 1;
+    
+    currSubjectName = names{subjectsVect(iSubject)};
+    %     disp(currSubjectName)
     file2load = dir([PATHS.PARENTFOLDER filesep currSubjectName filesep analysisTree filesep '*' structFileName '*']);
     fileName = file2load.name;
     try
@@ -72,19 +76,15 @@ for iSubject = startSubject:endSubject
             if ~exist('output', 'var')
                 output = cell(length(folders), 1);
             end
-            output{iSubject} = outputVar;
+            output{counter} = outputVar;
         case 'struct'
-            output.(['Subject_' currSubjectName]) = outputVar;
+            output(counter) = outputVar;
         case 'double'
-%             outputVar = reshape(outputVar, [ 1 numel(outputVar) ] );
-%             if ~exist('output', 'var')
-%                 output = NaN(length(folders), 1);
-%             else
-%                 if size(outputVar, 2) > size(output, 2)
-%                     output = cat(2, output, NaN(length(folders), size(outputVar, 2) - size(output, 2)));
-%                 end
-%             end
-            output{iSubject} = outputVar;
+
+            if iscell(output)
+                output = zeros(length(subjectsVect),1);
+            end
+            output(counter) = outputVar;
         case 'cell'
             outputVar = reshape(outputVar, [ 1 numel(outputVar) ] );
             if ~exist('output', 'var')
@@ -94,11 +94,10 @@ for iSubject = startSubject:endSubject
                     output = cat(2, output, cell(length(folders), size(outputVar, 2) - size(output, 2)));
                 end
             end
-            output(iSubject,1:size(outputVar,2)) = outputVar;
+            output(counter,1:size(outputVar,2)) = outputVar;
     end
     clear outputVar
 end
-            
-            
 
-            
+names = names(subjectsVect);
+

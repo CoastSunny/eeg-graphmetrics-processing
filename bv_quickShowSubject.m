@@ -1,4 +1,9 @@
-function bv_quickShowSubject(str, filestr)
+function bv_quickShowSubject(str, filestr, cfg)
+
+if nargin < 3
+    cfg = [];
+end
+
 
 eval('setOptions')
 eval('setPaths')
@@ -21,7 +26,7 @@ subjectFolderPath = [PATHS.SUBJECTS filesep subject.name];
 
 [subjectdata, data] = bv_check4data(subjectFolderPath, upper(filestr));
 
-cfg = [];
+
 cfg.viewmode = 'vertical';
 if length(data.trial) == 1
     cfg.blocksize = 8;

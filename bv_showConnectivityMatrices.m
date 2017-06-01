@@ -20,7 +20,12 @@ if nargin < 2
     eval(optionsFcn)
     
     subjectFolderPath = [PATHS.SUBJECTS filesep currSubject];
-    [subjectdata, connectivity] = bv_check4data(subjectFolderPath, inputStr);
+    try
+        [subjectdata, connectivity] = bv_check4data(subjectFolderPath, inputStr);
+    catch
+        fprintf('\t data file not found, skipping ... ')
+        return
+    end
     
     subjectdata.cfgs.(outputStr) = cfg;
 end
@@ -38,28 +43,47 @@ if not(length(freqLabel) == length(freqRange))
     error(errorStr)
 end
 
+fnames = fieldnames(connectivity);
+fname2use = fnames(not(cellfun(@isempty, strfind(fnames, 'spctrm')))); 
+method = regexprep(fname2use{:},'spctrm','');
+
+
 for iFreq = 1:length(freqLabel)
     cFreqLabel = freqLabel{iFreq};
     cFreqRange = freqRange{iFreq};
     
     fprintf('\t %s \n', cFreqLabel)
     
-    fprintf('\t\t selecting data ... ')
-    cfg = [];
-    cfg.frequency = cFreqRange;
-    evalc('currConnectivity = ft_selectdata(cfg, connectivity);');
-    fprintf('done! \n')
     
-    fprintf('\t\t creating connectivity matrix ... ')
-    W = mean(currConnectivity.wpli_debiasedspctrm,3);
-    ncols = size(W,2);
-    W(1:ncols+1:end) = NaN;
+    
+    
+    switch method
+        case 'wpli_debiased'
+            fprintf('\t\t selecting data ... ')
+            cfg = [];
+            cfg.frequency = cFreqRange;
+            evalc('currConnectivity = ft_selectdata(cfg, connectivity);');
+            fprintf('done! \n')
+            
+            fprintf('\t\t creating connectivity matrix ... ')
+            W = mean(currConnectivity.wpli_debiasedspctrm,3);
+        case 'pli'
+            fprintf('\t\t creating connectivity matrix ... ')
+            freqIndx = find(not(cellfun(@isempty, strfind(connectivity.freq, cFreqLabel))));
+            if ~isempty(freqIndx)
+                W = connectivity.plispctrm(:,:,freqIndx);
+            else
+                error('freqLabel %s not found', cFreqLabel)
+            end
+    end
+    
     
     figure;
     imagesc(W)
     title([currSubject ': Connectivity matrix ' cFreqLabel], 'FontSize', 20)
     set(gca, 'XTick', 1:length(connectivity.label), 'XTickLabel', connectivity.label, 'XTickLabelRotation', 90)
     set(gca, 'YTick', 1:length(connectivity.label), 'YTickLabel', connectivity.label)
+    setAutoLimits(gcf)
     ylabel('Channels', 'FontSize', 14)
     xlabel('Channels', 'FontSize', 14)
     axis('square')

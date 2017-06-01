@@ -27,7 +27,7 @@ evalc('chanlocs = readlocs(''/Users/Bauke/Matlab_Toolboxes/EEG/eeglab13_6_5b/plu
 [~, order] = ismember(chans, {chanlocs.labels});
 
 fig = figure;
-topoplot(dat, chanlocs(order), 'colormap', colormap('parula'), 'plotdisk', 'on', 'style', 'both', 'conv', 'on', 'gridscale', 1000);
+topoplot(dat, chanlocs(order), 'colormap', colormap('hot'), 'plotdisk', 'on', 'style', 'both', 'conv', 'on', 'gridscale', 1000);
 
 set(gca, 'CLim', lim)
 colorbar

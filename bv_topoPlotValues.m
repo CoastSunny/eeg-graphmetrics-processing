@@ -14,15 +14,16 @@ evalc('lay = ft_prepare_layout(cfg);');
 [~, indxSort] = ismember(lay.label, freq.label);
 
 % mDat = max(dat);
-foi = [1:2:40];
+foi = [1:2:10];
 
 nplots = length(foi);
 nyplot = ceil(sqrt(length(foi)));
 nxplot = ceil(nplots./nyplot);
 figure; 
+
 for i = 1:length(foi)
     [~,indx] = min(abs(freq.freq-foi(i)));
-    dat = freq.powspctrm(:,indx);
+    dat = squeeze(mean(freq.powspctrm(:,:,indx)));
     dat = dat(indxSort);
     
     chanX = lay.pos(:,1);
@@ -33,7 +34,7 @@ for i = 1:length(foi)
     
     subplot(nyplot, nxplot, i)
     ft_plot_topo(chanX,chanY,dat,opt{:});
-    
+    colorbar
     axis equal
     axis off
     title(num2str(foi(i)));

@@ -16,10 +16,10 @@ for i = 1:length(resultNames)
     load(currResult)
     fprintf('done! \n')
     
-    fnames = fieldnames(results);
+    fnames = fieldnames(graphResults.weighted);
     
     for j = 1:length(fnames)
         currField = fnames{j};
-        eval([ 'output(i).(currField) = results.' currField]);
+        eval([ 'output(i).(currField) = graphResults.weighted.' currField]);
     end
 end

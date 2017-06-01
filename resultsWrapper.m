@@ -1,16 +1,17 @@
 clear results ICCresults graph
-str = 'pli';
+str = 'pli5';
 
 a = dir([str '_*.mat']);
 resultStr = {a.name};
 
 % method = {'globCoV'};
 
-method = {'all'};
+method = {'unitwise75'};
 
 if strcmp(method{:}, 'all')
     method = {'cleanSessions', 'conMatrixCor', 'corrCorrMatrix', ...
-        'corrGroupAvg', 'scanwise', 'globConn', 'globCoV', 'globConnICC'};
+        'corrGroupAvg', 'scanwise', 'globConn', 'globCoV', 'globConnICC', ...
+        'unitwise', 'unitwise75', 'degrees'};
 end
 
 for i = 1:length(resultStr)
@@ -33,12 +34,22 @@ for i = 1:length(resultStr)
                 fprintf('\t calculating correlation between connectivity matrices \n')
                 indivCorrs(i,:) = bv_corrSesConnectivity(Ws);
                 results.conMatrices = indivCorrs(i,:);
-                fprintf('\t adding variable to %s', resultStr{i})
+                fprintf('\t adding variable to %s ... ', resultStr{i})
+                save(resultStr{i}, 'results', '-append')
+                fprintf('done! \n')
+                
+            case 'conMatrixCor75'
+                avgW = nanmean(nanmean(Ws,3),4);
+                newWs = Ws.*(repmat(double(avgW>prctile(squareform(avgW),75)), 1,1,60,2));
+                newWs(newWs == 0) = NaN;
+                indivCorrs75(i,:) = bv_corrSesConnectivity(newWs);
+                results.conMatrices75 = indivCorrs75(i,:);
+                fprintf('\t adding variable to %s ... ', resultStr{i})
                 save(resultStr{i}, 'results', '-append')
                 fprintf('done! \n')
                 
             case 'corrCorrMatrix'
-                fprintf('\t creating correlation between all connectivity matrices matrix')
+                fprintf('\t creating correlation between all connectivity matrices matrix \n')
                 
                 WsNeat = zeros([size(Ws,1) size(Ws,2) size(Ws,3)*size(Ws,4)]);
                 
@@ -46,7 +57,7 @@ for i = 1:length(resultStr)
                 WsNeat(:,:,2:2:end) = Ws(:,:,:,2);
                 
                 results.corrCorrMatrix = createCorrCorrMatrix(WsNeat);
-                fprintf('\t adding variable to %s', resultStr{i})
+                fprintf('\t adding variable to %s ... ', resultStr{i})
                 save(resultStr{i}, 'results', '-append')
                 fprintf('done! \n')
                 
@@ -80,7 +91,7 @@ for i = 1:length(resultStr)
 
                 pc = 0;
                 results.r_unitwise = bv_unitwiseICC(Ws, pc);
-                results.mr_unitwise = median(results.r_unitwise);
+                results.mr_unitwise = nanmedian(results.r_unitwise);
                 fprintf('done! \n')                
                
                 fprintf('\t saving to %s ... ', resultStr{i})
@@ -91,7 +102,7 @@ for i = 1:length(resultStr)
                 fprintf('\t calculating top 25 perc unitwise reliability ... ')
                 pc = 75;
                 results.r_unitwise75 = bv_unitwiseICC(Ws, pc);
-                results.mr_unitwise75 = median(results.r_unitwise75);
+                results.mr_unitwise75 = nanmedian(results.r_unitwise75);
                 fprintf('done! \n')
                 
                 fprintf('\t saving to %s ... ', resultStr{i})

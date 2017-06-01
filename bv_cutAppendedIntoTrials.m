@@ -15,6 +15,12 @@ subjectFolderPath = [PATHS.SUBJECTS filesep currSubject];
 [subjectdata, dataOld] = bv_check4data(subjectFolderPath, inputStr);
 
 trialparts2use = find(dataOld.contSecs > triallength);
+
+if isempty(trialparts2use)
+    fprintf('\t \t no trials found, skipping ... ')
+    return;
+end
+
 sampleinfo = [];
 trialinfo = [];
 for i = 1:length(trialparts2use)
@@ -22,8 +28,8 @@ for i = 1:length(trialparts2use)
     nTrls = floor(dataOld.contSecs(trl) / triallength);
     
     for j = 1:nTrls
-        currsampleinfoStart = dataOld.sampleinfo(trl,1) + triallength*dataOld.fsample*(j-1);
-        currsampleinfoEnd = dataOld.sampleinfo(trl,1) + triallength*dataOld.fsample*(j);
+        currsampleinfoStart = (dataOld.sampleinfo(trl,1) + triallength*dataOld.fsample*(j-1));
+        currsampleinfoEnd = dataOld.sampleinfo(trl,1) + triallength*dataOld.fsample*(j) - 1;
         currsampleinfo = [currsampleinfoStart currsampleinfoEnd];
         
         sampleinfo = cat(1, sampleinfo, currsampleinfo);

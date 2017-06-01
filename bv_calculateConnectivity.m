@@ -1,7 +1,7 @@
 function connectivity = bv_calculateConnectivity(cfg, data)
 
 inputStr 	= ft_getopt(cfg, 'inputStr');
-% outputStr   = ft_getopt(cfg, 'outputStr');
+outputStr   = ft_getopt(cfg, 'outputStr');
 currSubject = ft_getopt(cfg, 'currSubject');
 optionsFcn  = ft_getopt(cfg, 'optionsFcn');
 freqOutput  = ft_getopt(cfg, 'freqOutput','fourier');
@@ -16,10 +16,16 @@ if nargin < 2
     eval('setOptions')
     
     subjectFolderPath = [PATHS.SUBJECTS filesep currSubject];
-    [subjectdata, data] = bv_check4data(subjectFolderPath, inputStr);
+    try
+        [subjectdata, data] = bv_check4data(subjectFolderPath, inputStr);
+    catch
+        fprintf('\t previous data not found, skipping ... \n')
+        connectivity = [];
+        return
+    end
     
     subjectdata.cfgs.(method) = cfg;
-
+    
 end
 
 
@@ -27,13 +33,15 @@ end
 switch(method)
     case 'wpli_debiased'
         
+        
+        
         fprintf('\t frequency analysis started ... ')
         cfg = [];
         cfg.method      = 'mtmfft';
         cfg.taper       = 'hanning';
         cfg.output      = freqOutput;
         cfg.keeptrials  = 'yes';
-%         cfg.keeptapers  = 'yes';
+        %         cfg.keeptapers  = 'yes';
         cfg.tapsmofrq   = 2;
         if strcmpi(nTrials, 'all')
             cfg.trials  = 'all';
@@ -49,12 +57,12 @@ switch(method)
         evalc('connectivity = ft_connectivityanalysis(cfg, freq);');
         fprintf('done! \n')
         
-        [m,n,p]=size(connectivity.wpli_debiasedspctrm);
-        idx=find(speye(m,n));
-        xx=reshape(connectivity.wpli_debiasedspctrm,m*n,p);
-        xx(idx,:) = 0;
-
-        connectivity.wpli_debiasedspctrm = reshape(xx, m,n,p);
+        if not(isempty(subjectdata.rmChannels))
+            trueRmChannels = subjectdata.rmChannels(not(ismember(subjectdata.rmChannels, OPTIONS.PREPROC.rmChannels)));
+            connectivity = addRemovedChannels(connectivity, trueRmChannels);
+        end
+        
+        connectivity.wpli_debiasedspctrm = bv_setDiag(connectivity.wpli_debiasedspctrm, 0);
         
     case 'wpli'
         
@@ -79,25 +87,10 @@ switch(method)
         connectivity.wplispctrm = abs(connectivity.wplispctrm);
         
     case 'pli'
-            
-        trueRmChannels = subjectdata.rmChannels(not(ismember(subjectdata.rmChannels, OPTIONS.PREPROC.rmChannels)));
-        
-        label = cat(1,data.label, trueRmChannels);
-        nChans = length(label);
-        
-        cfg = [];
-        cfg.channel  = label;
-        cfg.layout   = 'EEG1010';
-        cfg.feedback = 'no';
-        cfg.skipcomnt  = 'yes';
-        cfg.skipscale  = 'yes';
-        evalc('lay = ft_prepare_layout(cfg);');
-        
-        [~, indxSort] = ismember(lay.label, label);
-        
+                
         freqLabel = {'delta', 'theta', 'alpha1', 'alpha2', 'beta', 'gamma'};
         freqRng = {[1 3], [3 6], [6 9], [9 12], [12 25], [25 40]};
-
+        
         for iFreq = 1:length(freqLabel)
             currFreq = freqLabel{iFreq};
             currFreqRng = freqRng{iFreq};
@@ -109,37 +102,41 @@ switch(method)
             cfg.lpfreq = currFreqRng(2);
             cfg.hpfilter = 'yes';
             cfg.hpfreq = currFreqRng(1);
-            cfg.trials = 1:nTrials;
+            if strcmpi(nTrials, 'all')
+                cfg.trials  = 'all';
+            else
+                cfg.trials      = 1:nTrials;
+            end
             
             evalc('dataFilt = ft_preprocessing(cfg, data);');
             
             PLIs = PLI(dataFilt.trial,1);
             PLIs = cat(3,PLIs{:});
             W = mean(PLIs,3);
-            W(end+1:end+(nChans-size(W,1)), 1:end) = NaN;
-            W(1:end, end+1:end+(nChans-size(W,2))) = NaN;
-            
-            W = W(indxSort, indxSort);
             
             connectivity.plispctrm(:,:,iFreq) = W;
             fprintf('done!\n')
         end
         
-        
-        
-        
         connectivity.dimord = 'chan_chan_freq';
         connectivity.freq = freqLabel;
         connectivity.freqRng = freqRng;
         connectivity.label = data.label;
-                
-end
+              
+        if not(isempty(subjectdata.rmChannels))
+            trueRmChannels = subjectdata.rmChannels(not(ismember(subjectdata.rmChannels, OPTIONS.PREPROC.rmChannels)));
+            connectivity = addRemovedChannels(connectivity, trueRmChannels);
+        end
         
+        connectivity.plispctrm = bv_setDiag(connectivity.plispctrm, 0);
+       
+end
+
 
 if strcmpi(saveData, 'yes');
     
-    outputFilename = [subjectdata.subjectName '_' method '.mat'];
-    fieldname = upper([method]);
+    outputFilename = [subjectdata.subjectName '_' outputStr '.mat'];
+    fieldname = upper(outputStr);
     subjectdata.PATHS.(fieldname) = [subjectdata.PATHS.SUBJECTDIR filesep ...
         outputFilename];
     
@@ -160,6 +157,32 @@ if strcmpi(saveData, 'yes');
 end
 
 
+function connectivity = addRemovedChannels(connectivity, trueRmChannels)
+
+connectivity.label = cat(1,connectivity.label, trueRmChannels);
+
+fnames = fieldnames(connectivity);
+fname2use = fnames{not(cellfun(@isempty, strfind(fnames, 'spctrm')))};
+
+currSpctrm = connectivity.(fname2use);
+startRow = (size(currSpctrm,1) + 1);
+endRow = (size(currSpctrm,1)) + length(trueRmChannels);
+currSpctrm(1:size(currSpctrm,1), startRow:endRow, :) = NaN;
+currSpctrm(startRow:endRow, 1:size(currSpctrm,2), :) = NaN;
+
+cfg = [];
+cfg.channel  = connectivity.label;
+cfg.layout   = 'EEG1010';
+cfg.feedback = 'no';
+cfg.skipcomnt  = 'yes';
+cfg.skipscale  = 'yes';
+evalc('lay = ft_prepare_layout(cfg);');
+
+[~, indxSort] = ismember(lay.label, connectivity.label);
+
+currSpctrm = currSpctrm(indxSort, indxSort,:);
+connectivity.label = connectivity.label(indxSort);
+connectivity.(fname2use) = currSpctrm;
 
 
 

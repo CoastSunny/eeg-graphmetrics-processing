@@ -26,12 +26,17 @@ for iGrph = 1:length(graphMetric)
                     lng = printPercDone(n*m, counter);
                     varargout{iGrph}(:,i,j) = calculatePathlengthWs(currWs, edgeType);
                     fprintf(repmat('\b', 1, lng))
+                    
                 case 'S'
 %                     lng = printPercDone(n*m, i);
                     
                     [varargout{iGrph}(:,i,j), CWnrm(:,i,j), CPLnrm(:,i,j)] = ...
                         gr_calculateSmallworldnessWs(currWs, edgeType);            
 %                     fprintf(repmat('\b', 1, lng))
+                case 'Q'
+                    lng = printPercDone(n*m, counter);
+                    [varargout{iGrph}(:,i,j) varargout{iGrph+1}(:,i,j)] = gr_calculateQModularity(currWs, edgeType);
+                    fprintf(repmat('\b', 1, lng))
             end
         end
     end

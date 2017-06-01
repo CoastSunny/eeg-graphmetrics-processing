@@ -39,6 +39,8 @@ m = size(sqWs,2);
 r_unit = zeros(1,m);
 for i = 1:m
     curr = squeeze(sqWs(:,i,:));
+    curr = curr(~any(isnan(curr),2),:);
+    curr = curr(~any(isinf(curr),2),:);
     r_unit(i) = ICC(curr, '1-k');
 end
 
