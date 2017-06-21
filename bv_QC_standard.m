@@ -68,7 +68,6 @@ dataSet     = ft_getopt(cfg, 'dataSet');
 countGoodTrials = ft_getopt(cfg, 'countGoodTrials');
 triallength2use = ft_getopt( cfg, 'triallength2use', 'default');
 
-
 % detemine analyses to be done
 analyses = {};
 if strcmpi(preprocessing, 'yes')

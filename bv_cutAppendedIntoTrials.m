@@ -17,7 +17,7 @@ subjectFolderPath = [PATHS.SUBJECTS filesep currSubject];
 trialparts2use = find(dataOld.contSecs > triallength);
 
 if isempty(trialparts2use)
-    fprintf('\t \t no trials found, skipping ... ')
+    fprintf('\t \t no trials found, skipping ... \n')
     return;
 end
 
@@ -50,7 +50,7 @@ fprintf('done! \n')
 
 if strcmpi(saveData, 'yes')
     
-    bv_saveData(data, subjectdata, outputStr)
+    bv_saveData(subjectdata, data, outputStr)
     
 end
 

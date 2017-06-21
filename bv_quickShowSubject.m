@@ -31,5 +31,6 @@ cfg.viewmode = 'vertical';
 if length(data.trial) == 1
     cfg.blocksize = 8;
 end
+cfg.ylim = [-150 150];
 fprintf('\t showing %s data \n', upper(filestr))
 evalc('ft_databrowser(cfg, data)');

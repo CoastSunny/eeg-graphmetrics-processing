@@ -1,4 +1,4 @@
-function fig = topoplotWrapper(dat, chans, lim) 
+function [h,Zi] = topoplotWrapper(dat, chans, lim) 
 
 if nargin < 3
     lim = [min(dat), max(dat)];
@@ -27,9 +27,9 @@ evalc('chanlocs = readlocs(''/Users/Bauke/Matlab_Toolboxes/EEG/eeglab13_6_5b/plu
 [~, order] = ismember(chans, {chanlocs.labels});
 
 fig = figure;
-topoplot(dat, chanlocs(order), 'colormap', colormap('hot'), 'plotdisk', 'on', 'style', 'both', 'conv', 'on', 'gridscale', 1000);
+[h,Zi] = topoplot(dat, chanlocs(order), 'colormap', colormap('hot'), 'plotdisk', 'on', 'style', 'both', 'conv', 'on', 'gridscale', 1000, 'electrodes','labelpoint');
 
-set(gca, 'CLim', lim)
+% set(gca, 'CLim', lim)
 colorbar
 
 axis equal

@@ -81,7 +81,7 @@ if doStandardArtefacts
         if ismember('kurtosis', artefactMethods)
             artefactdef.kurtLevels(:,i) = kurtosis(data.trial{i}, [], 2);
         end
-        if ismember('variance', artefactMethods)  
+        if ismember('variance', artefactMethods)
             artefactdef.varLevels(:,i) = std(data.trial{i}, [], 2).^2;
         end
         if ismember('inverseVariance', artefactMethods) 

@@ -20,8 +20,8 @@ startTrial = dataOld.sampleinfo(:,1);
 endTrial = dataOld.sampleinfo(:,2);
 trialinfo = dataOld.trialinfo;
 
-tmptrl(:,1) = startTrial(find([1; diff(startTrial) ~= fsample]));
-tmptrl(:,2) = endTrial(find([diff(startTrial) ~= fsample; 1]));
+tmptrl(:,1) = startTrial(find([1; diff(startTrial) ~= length(dataOld.trial{1})]));
+tmptrl(:,2) = endTrial(find([diff(startTrial) ~= length(dataOld.trial{1}); 1]));
 
 tmptrialinfo = dataOld.trialinfo(ismember(dataOld.sampleinfo(:,1), tmptrl(:,1)));
 
@@ -58,7 +58,7 @@ data.contSecs = contSecs;
 
 if strcmpi(saveData, 'yes')
     
-    bv_saveData(data, subjectdata, outputStr)
+    bv_saveData(subjectdata, data, outputStr)
     
 end
 

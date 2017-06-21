@@ -5,8 +5,8 @@ outputStr   = ft_getopt(cfg, 'outputStr');
 currSubject = ft_getopt(cfg, 'currSubject');
 optionsFcn  = ft_getopt(cfg, 'optionsFcn');
 saveFigures = ft_getopt(cfg, 'saveFigures');
-freqLabel   = ft_getopt(cfg, 'freqLabel');
-freqRange   = ft_getopt(cfg, 'freqRange');
+freqLabel   = ft_getopt(cfg, 'freqLabel', {'delta', 'theta', 'alpha1', 'alpha2', 'beta', 'gamma'});
+freqRange   = ft_getopt(cfg, 'freqRange',  {[1 3], [3 6], [6 9], [9 12], [12 25], [25 48]});
 
 if ~iscell(freqLabel)
     freqLabel = {freqLabel};
@@ -28,12 +28,6 @@ if nargin < 2
     end
     
     subjectdata.cfgs.(outputStr) = cfg;
-end
-
-if isempty(freqLabel) || isempty(freqRange)
-    fprintf('\t No specific frequency bands given. Using all standard frequency bands. \n')
-    freqLabel = {'delta', 'theta', 'alpha1', 'alpha2', 'beta', 'gamma1', 'gamma2'};
-    freqRange = {[1 3], [3 6], [6 9], [9 12], [12 25], [25 48], [52 98]};
 end
 
 if not(length(freqLabel) == length(freqRange))
@@ -83,11 +77,12 @@ for iFreq = 1:length(freqLabel)
     title([currSubject ': Connectivity matrix ' cFreqLabel], 'FontSize', 20)
     set(gca, 'XTick', 1:length(connectivity.label), 'XTickLabel', connectivity.label, 'XTickLabelRotation', 90)
     set(gca, 'YTick', 1:length(connectivity.label), 'YTickLabel', connectivity.label)
-    setAutoLimits(gcf)
+    setAutoLimits(gca)
     ylabel('Channels', 'FontSize', 14)
     xlabel('Channels', 'FontSize', 14)
     axis('square')
     fprintf('done! \n')
+    colorbar
     
     xScreenLength = 1;
     yScreenLength = 1;
