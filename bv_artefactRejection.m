@@ -163,7 +163,7 @@ if ~length(chans2remove) == 0
         
         evalc('data = ft_selectdata(cfg, data);');
         
-        fprintf('\t recalculating artefacts without removed channels \n')
+        fprintf('\t recalculating artefacts with channels removed \n')
         
         fprintf('\t\t frequency calculation ... ')
         evalc('freq = bvLL_frequencyanalysis(data, freqrange,output);');

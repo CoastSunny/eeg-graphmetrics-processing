@@ -89,7 +89,7 @@ function [ data, subjectdata ] = bv_preprocResample(cfg)
 currSubject = ft_getopt(cfg, 'currSubject');
 pathsFcn    = ft_getopt(cfg, 'pathsFcn');
 trialfun    = ft_getopt(cfg, 'trialfun');
-saveData    = ft_getopt(cfg, 'saveData', 'no');
+saveData    = ft_getopt(cfg, 'saveData', 'yes');
 outputStr   = ft_getopt(cfg, 'outputStr', 'preproc');
 resampleFs  = ft_getopt(cfg, 'resampleFs');
 hpfreq      = ft_getopt(cfg, 'hpfreq');
@@ -102,29 +102,21 @@ rmChannels  = ft_getopt(cfg, 'rmChannels');
 dataset     = ft_getopt(cfg, 'dataset');
 hdrfile     = ft_getopt(cfg, 'hdrfile');
 
-analysisOrd = {};
-
 if ~isempty(dataset) && ~isempty(hdrfile)
-    fprintf('running with raw \n \t dataset: %s and \n \t hdrfile: %s \n ', ...
+    fprintf('running with raw dataset: %s and hdrfile: %s as inputs', ...
         dataset, hdrfile)
-    fprintf('**********************************************************\n')
-    fprintf('\n')
     hasdata = 1;
-    if strcmpi(saveData, 'yes')
-        warning('data can not be saved when given dataset and hdrfile inputs, not saving ... ')
-        saveData = 'no';
-    end
 else
     if isempty(currSubject)
-        error('no dataset and hdrfile given, while no currSubject is known')
-    end
+        error('no dataset and hdrfile given
     fprintf('running with subject.mat file of %s ', currSubject)
     hasdata = 0;
 end
 
-if ~hasdata % check whether data needs to be loaded from subject.mat file
+if ~hasdata
     
     eval(pathsFcn) % get paths necessary to run function
+    analysisOrd = {};
     
     % Try to load in individuals Subject.mat. If unknown --> throw error.
     try
@@ -132,25 +124,22 @@ if ~hasdata % check whether data needs to be loaded from subject.mat file
     catch
         error('Subject.mat file not found')
     end
-
+    
+    subjectdata.cfgs.(outputStr) = cfg; % save used config file in subjectdata
+    subjectdata.rmChannels = rmChannels'; % save possible removed channels in subjectdata
+    
     disp(subjectdata.subjectName)
     fprintf('\t Setting up for preprocessing ... ')
     
     hdrfile = subjectdata.PATHS.HDRFILE;
     dataset = subjectdata.PATHS.DATAFILE;
-   
-end
-
-subjectdata.cfgs.(outputStr) = cfg; % save used config file in subjectdata
-subjectdata.rmChannels = rmChannels'; % save possible removed channels in subjectdata
-
-fprintf('\t loading in data ... ')
-cfg = []; % start new cfg file for loading data
-% only read in EEG data (without possible removed channels)
-if ~isempty(rmChannels)
-    cfg.channel = cat(2,'EEG', strcat('-',rmChannels));
-else
-    cfg.channel = cat(2,'EEG');
+    
+    % read in data (without possible removed channels)
+    if ~isempty(rmChannels)
+        cfg.channel = cat(2,'EEG', strcat('-',rmChannels));
+    else
+        cfg.channel = cat(2,'EEG');
+    end
 end
 
 cfg.dataset = dataset;
@@ -159,7 +148,6 @@ cfg.continuous = 'yes';
 % cfg.demean = 'yes';
 % cfg.detrend = 'yes';
 evalc('data = ft_preprocessing(cfg);');
-fprintf('done! \n')
 
 data = bv_sortBasedOnTopo(data); % sorting data based on actual place of the electrodes. See function or more detail.
 
@@ -174,8 +162,6 @@ if ~isempty(resampleFs)
     % Therefore giving yout he mapping between the new and the old samples
     % (see https://mailman.science.ru.nl/pipermail/fieldtrip/2016-March/010263.html)
     % Check BV_RESAMPLEEEGDATA for analysis
-    cfg = [];
-    cfg.resampleFs = resampleFs;
     
     [ data , oldSampleInfo ] = bv_resampleEEGdata( cfg , data );
     
@@ -192,7 +178,7 @@ if ~isempty(hpfreq) || isempty(lpfreq) || isempty(notchfreq)
     cfg.notchfreq   = notchfreq;
     cfg.filttype    = filttype;
     
-    data = bv_filterEEGdata(cfg, data);
+    data = bv_filterEEGdata(cfg);
     
     analysisOrd = [analysisOrd, 'filt']; % managing analysis order to save later
 end

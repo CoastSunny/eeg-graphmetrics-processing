@@ -1,6 +1,5 @@
 function bv_saveData(subjectdata, data, outputStr)
 
-
 if nargin > 1
     
     filename = [subjectdata.subjectName '_' outputStr '.mat'];
@@ -10,6 +9,7 @@ if nargin > 1
     fprintf('\t saving %s ... ', filename)
     save(filePath, 'data')
     fprintf('done! \n')
+    
 end
 
 fprintf('\t saving Subject.mat ... ')

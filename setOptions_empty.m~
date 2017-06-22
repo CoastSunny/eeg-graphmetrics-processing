@@ -1,0 +1,124 @@
+% Empty options m-file for the analysis pipe line of baby connectivity
+% data. This file can be added to your ROOT folder to keep track of all the
+% settings set when the analysis was last ran. 
+
+
+%% General options
+% general options for the whole experiment
+OPTIONS.saveData                = % 'string': ('yes' or 'no') to determine whether data is saved
+OPTIONS.triallength             = % [ number ]: triallength used for analysis 
+OPTIONS.pathsScript             = % 'string': pathScript name ('setPaths')
+OPTIONS.sDirString              = % 'string': unique search string for raw eeg files which will find all files when used as dir ( ['*' sDirString '*'] )
+OPTIONS.dataType                = % 'string': ('bdf' or 'eeg') to determine which datatype will be used for the analyses
+OPTIONS.trigger.value           = % [ double ]: trigger value(s)
+OPTIONS.trigger.label           = % { cell }: trigger label(s) (e.g. 'Social' vs 'NonSocial'). Must be equal in length with trigger value.
+
+%% Preprocessing options
+% options only used for the preprocessing of the data
+OPTIONS.PREPROC.resampleFs      = % [ number ]: resampling frequency. 
+OPTIONS.PREPROC.trialfun        = % 'string': filename of trialfun to be used (please add trialfun to your path)
+OPTIONS.PREPROC.hpfreq          = % [ number ]: high-pass filter frequency cut-off
+OPTIONS.PREPROC.lpfreq          = % [ number ]: low-pass filter frequency cut-off
+OPTIONS.PREPROC.notchfreq       = % [ number ]: notch filter frequency 
+OPTIONS.PREPROC.pathsFcn        = OPTIONS.pathsScript; 
+OPTIONS.PREPROC.filttype        = % 'string': ('but' or 'firws'). If none given, 'but' is used.
+OPTIONS.PREPROC.saveData        = OPTIONS.saveData;
+OPTIONS.PREPROC.outputStr       = % 'string': addition to filename when saving, so that the output filename becomes [currSubject outputStr .mat]
+OPTIONS.PREPROC.rmChannels      = % { cell }: names of channels to be removed before preprocessing 
+
+%% Independent component analysis options
+% set options for component analysis. Recommended is the extended 'runica' 
+% method
+OPTIONS.COMP.saveData           = OPTIONS.saveData;
+OPTIONS.COMP.outputStr          = % 'string': addition to filename when saving, so that the output filename becomes [currSubject outputStr .mat]
+OPTIONS.COMP.inputStr           = % 'string': outputstr of previous analysis step, to be used as input for this step
+OPTIONS.COMP.method             = % 'string': (e.g. 'runica', 'fastica', check FT_COMPONENTANALYSIS for more options)
+OPTIONS.COMP.extended           = % [ boolean ]: (1 or 0) to set whether 'runica' needs to be extended (recommended)
+OPTIONS.COMP.optionsFcn         = OPTIONS.pathsScript;
+
+%% Remove components options
+% set options for the removal of components. Blink removal can be
+% automatic. Works in 80-90 percent of the cases. Only if blinks are
+% limited (like in young infants), the automatic script seems to fail.
+% Steps are built-in to check removed component before removal. Please do
+% not skip this step and ensure the correct components have been removed
+OPTIONS.COMPREMOVED.saveData            = OPTIONS.saveData;
+OPTIONS.COMPREMOVED.outputStr           = % 'string': addition to filename when saving, so that the output filename becomes [currSubject outputStr .mat]
+OPTIONS.COMPREMOVED.compStr             = % 'string': outputstr of component analysis step, to be used to remove components
+OPTIONS.COMPREMOVED.dataStr             = % 'string': outputstr of data analysis step from which components need to be removed
+OPTIONS.COMPREMOVED.optionsFcn          = OPTIONS.pathsScript;
+OPTIONS.COMPREMOVED.automaticRemoval    = % 'string': ('yes' or 'no'), to set whether automatic blink component removal is warranted 
+OPTIONS.COMPREMOVED.saveFigure          = % 'string': ('yes' or 'no'), to save component removal figure
+
+%% Remove channels options
+% set options for the removal of complete channels. It is recommended to
+% only remove channels that are flatlining of are extremely noisy, so much
+% so that they will influence the average rereference grossly. 
+OPTIONS.RMCHANNELS.betaLim      = % [ number ]: Checks for trials very high in beta. Limit of the amount of beta-power accepted in a trial (in dB.). 
+OPTIONS.RMCHANNELS.gammaLim     = % [ number ]: Checks for trials very high in gamma. Limit of the amount of gamma-power accepted in a trial (in dB.). 
+OPTIONS.RMCHANNELS.varLim       = % [ number ]: Checks for highly varying trials. Limit of the amount of variance accepted in a trial 
+OPTIONS.RMCHANNELS.invVarLim    = % [ number ]: Checks for flatlining. Limit of the amount of inverse variance accepted in a trial 
+OPTIONS.RMCHANNELS.kurtLim      = % [ number ]: Checks for jumps. Limit of the kurtosis per trial
+OPTIONS.RMCHANNELS.vMaxLim      = % [ number ]: Checks for high amplitudes. Limit the max amplitude of a trial
+OPTIONS.RMCHANNELS.triallength  = % [ number ]: Triallength used for artifact removal (usually set to 1s). The definitive triallength is set later in the analysis
+OPTIONS.RMCHANNELS.cutOutputData= 'no'; % 'string': ('yes' or 'no') set to 'yes' if artefacts need to be recalculated after channel removal. Set to 'no' when 
+OPTIONS.RMCHANNELS.saveFigures  = 
+OPTIONS.RMCHANNELS.showFigures  = 
+OPTIONS.RMCHANNELS.inputStr     = 
+OPTIONS.RMCHANNELS.outputStr    = 
+OPTIONS.RMCHANNELS.saveData     = OPTIONS.saveData;
+OPTIONS.RMCHANNELS.rmTrials     = 
+OPTIONS.RMCHANNELS.optionsFcn   = OPTIONS.pathsScript;
+
+
+%% Rereferencing options
+OPTIONS.REREF.refElectrode      = 'all';
+OPTIONS.REREF.saveData          = OPTIONS.saveData;
+OPTIONS.REREF.outputStr         = 'reref';
+OPTIONS.REREF.inputStr          = 'COMPREMOVED';
+OPTIONS.REREF.optionsFcn        = OPTIONS.pathsScript;
+
+
+%% Cleaning options
+OPTIONS.CLEANED.betaLim         = 
+OPTIONS.CLEANED.gammaLim        = 
+OPTIONS.CLEANED.varLim          = 
+OPTIONS.CLEANED.invVarLim       = 
+OPTIONS.CLEANED.kurtLim         = 
+OPTIONS.CLEANED.vMaxLim         = 
+OPTIONS.CLEANED.triallength     = 
+OPTIONS.CLEANED.saveFigures     = 
+OPTIONS.CLEANED.showFigures     = 
+OPTIONS.CLEANED.inputStr        = 
+OPTIONS.CLEANED.outputStr       = 
+OPTIONS.CLEANED.saveData        = OPTIONS.saveData;
+OPTIONS.CLEANED.cutOutputData   = 
+OPTIONS.CLEANED.rmTrials        = 
+OPTIONS.CLEANED.optionsFcn      = OPTIONS.pathsScript;
+
+%% OPTIONS TO CUT DATA INTO TRIALS
+OPTIONS.DATACUT.inputStr    = 
+OPTIONS.DATACUT.outputStr   = 
+OPTIONS.DATACUT.saveData    = 
+OPTIONS.DATACUT.triallength = OPTIONS.triallength;
+
+
+%% WPLI Connetivity calculation options
+OPTIONS.WPLICONNECTIVITY.inputStr   = 
+OPTIONS.WPLICONNECTIVITY.method     = 
+OPTIONS.WPLICONNECTIVITY.freqOutput = 
+OPTIONS.WPLICONNECTIVITY.outputStr  = 
+OPTIONS.WPLICONNECTIVITY.saveData   = OPTIONS.saveData;
+OPTIONS.WPLICONNECTIVITY.optionsFcn = OPTIONS.pathsScript;
+
+%% PLI connetivity calculation options
+OPTIONS.PLICONNECTIVITY.inputStr    = 
+OPTIONS.PLICONNECTIVITY.method      = 
+OPTIONS.PLICONNECTIVITY.freqOutput  = 
+OPTIONS.PLICONNECTIVITY.outputStr   = 
+OPTIONS.PLICONNECTIVITY.saveData    = OPTIONS.saveData;
+OPTIONS.PLICONNECTIVITY.optionsFcn  = OPTIONS.pathsScript;
+
+
+
+
