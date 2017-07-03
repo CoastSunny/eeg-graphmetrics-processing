@@ -28,7 +28,7 @@ if isempty(vMaxLim);        vMaxLim     = Inf;  end
 
 if isempty(triallength);    error('no cfg.triallength given'); end
 
-if sum(isinf([betaLim gammaLim varLim invVarLim kurtLim zScoreLim])) == length([betaLim gammaLim varLim invVarLim kurtLim zScoreLim])
+if sum(isinf([betaLim gammaLim varLim invVarLim kurtLim zScoreLim vMaxLim])) == length([betaLim gammaLim varLim invVarLim kurtLim zScoreLim vMaxLim])
     warning('No limits given so no artefacts will be detected')
 end
 
@@ -140,7 +140,7 @@ if strcmpi(showFigures, 'yes')
 end
 
 badTrialsPerChannel = hist(artefactdef.badPartsMatrix(:,2),1:length(data.label));
-pBadTrials = badTrialsPerChannel / size(artefactdef.kurtLevels,2);
+pBadTrials = badTrialsPerChannel / length(data.trial);
 chans2remove = data.label(pBadTrials > 0.5);
 
 if ~length(chans2remove) == 0

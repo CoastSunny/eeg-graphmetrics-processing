@@ -65,42 +65,41 @@ artefactdef.allCounts = [];
 fprintf('\t \t Calculating artefact levels ... ')
 if doStandardArtefacts
     if ismember('kurtosis', artefactMethods)
-        artefactdef.kurtLevels      = zeros(length(data.label), length(data.trial));
+        artefactdef.kurtosis.levels      = zeros(length(data.label), length(data.trial));
     end
     if ismember('variance', artefactMethods)
-        artefactdef.varLevels       = zeros(length(data.label), length(data.trial));
+        artefactdef.variance.levels       = zeros(length(data.label), length(data.trial));
     end
     if ismember('inverseVariance', artefactMethods)
-        artefactdef.invVarLevels    = zeros(length(data.label), length(data.trial));
+        artefactdef.invvariance.levels    = zeros(length(data.label), length(data.trial));
     end
     if ismember('range', artefactMethods)
-        artefactdef.invVarLevels    = zeros(length(data.label), length(data.trial));
+        artefactdef.range.levels    = zeros(length(data.label), length(data.trial));
     end
        
     for i = 1:length(data.trial)
         if ismember('kurtosis', artefactMethods)
-            artefactdef.kurtLevels(:,i) = kurtosis(data.trial{i}, [], 2);
+            artefactdef.kurtosis.levels(:,i) = kurtosis(data.trial{i}, [], 2);
         end
         if ismember('variance', artefactMethods)
-            artefactdef.varLevels(:,i) = std(data.trial{i}, [], 2).^2;
+            artefactdef.variance.levels(:,i) = std(data.trial{i}, [], 2).^2;
         end
         if ismember('inverseVariance', artefactMethods) 
-            artefactdef.invVarLevels(:,i) = 1./(std(data.trial{i}, [], 2).^2);
+            artefactdef.invvariance.levels(:,i) = 1./(std(data.trial{i}, [], 2).^2);
         end
         if ismember('range', artefactMethods)
-            artefactdef.rangeLevels (:, i) = max(data.trial{i}, [], 2) - min(data.trial{i}, [], 2);
+            artefactdef.range.levels (:, i) = max(data.trial{i}, [], 2) - min(data.trial{i}, [], 2);
         end
         if ismember('vMax', artefactMethods)
-            artefactdef.vMax(:, i) = max(data.trial{i}, [], 2);
-            artefactdef.vMin(:, i) = min(data.trial{i}, [], 2);
-            artefactdef.vAmp(:, i) = artefactdef.vMax(:, i) - artefactdef.vMin(:, i);
+            artefactdef.vMax.levels(:, i) = max(data.trial{i}, [], 2);
+            artefactdef.vMin.levels(:, i) = min(data.trial{i}, [], 2);
+            artefactdef.vAmp.levels(:, i) = artefactdef.vMax.levels(:, i) - artefactdef.vMin.levels(:, i);
         end
-        
     end
     
     if ismember('kurtosis', artefactMethods)
-        
-        [badChannelKurt, badTrialKurt] = find(artefactdef.kurtLevels > kurtLim);
+                
+        [badChannelKurt, badTrialKurt] = find(artefactdef.kurtosis.levels > kurtLim);
         badChannels = [badChannels; badChannelKurt];
         badTrials = [badTrials; badTrialKurt];
         counts.Kurt = hist(badChannelKurt, 1:length(data.label));
@@ -108,8 +107,8 @@ if doStandardArtefacts
 
     end
     if ismember('variance', artefactMethods)
-        
-        [badChannelVar, badTrialVar] = find(artefactdef.varLevels > varLim);
+
+        [badChannelVar, badTrialVar] = find(artefactdef.variance.levels > varLim);
         badChannels = [badChannels; badChannelVar];
         badTrials = [badTrials; badTrialVar];
         counts.Var       = hist(badChannelVar, 1:length(data.label));
@@ -118,8 +117,8 @@ if doStandardArtefacts
 
     end
     if ismember('inverseVariance', artefactMethods)
-        
-        [badChannelInvVar, badTrialInvVar]  = find(artefactdef.invVarLevels > invVarLim);
+
+        [badChannelInvVar, badTrialInvVar]  = find(artefactdef.invvariance.levels > invVarLim);
         badChannels = [badChannels; badChannelInvVar];
         badTrials = [badTrials; badTrialInvVar];
         counts.InvVar    = hist(badChannelInvVar, 1:length(data.label));
@@ -127,8 +126,8 @@ if doStandardArtefacts
         
     end
     if ismember('range', artefactMethods)
-        
-        [badChannelRange, badTrialRange]  = find(artefactdef.rangeLevels > rangeLim);
+
+        [badChannelRange, badTrialRange]  = find(artefactdef.range.levels > rangeLim);
         badChannels = [badChannels; badChannelRange];
         badTrials = [badTrials; badTrialRange];
         counts.Range    = hist(badChannelRange, 1:length(data.label));
@@ -136,8 +135,8 @@ if doStandardArtefacts
         
     end
     if ismember('vMax', artefactMethods)
-        
-        [badChannelVMax, badTrialVMax]  = find(artefactdef.vAmp > vMaxLim);
+
+        [badChannelVMax, badTrialVMax]  = find(artefactdef.vAmp.levels > vMaxLim);
         badChannels = [badChannels; badChannelVMax];
         badTrials = [badTrials; badTrialVMax];
         counts.vMax    = hist(badChannelVMax, 1:length(data.label));
@@ -190,7 +189,6 @@ if doStandardArtefacts
         deltaStart  = find(freq.freq == 2);
         deltaEnd    = find(freq.freq == 3);
         
-        
         artefactdef.delta.power = squeeze( mean( freq.(field2use)( :, :, deltaStart:deltaEnd), 3 ) )';        
         artefactdef.theta.power = squeeze( mean( freq.(field2use)( :, :, thetaStart:thetaEnd), 3 ) )';        
         artefactdef.alpha.power = squeeze( mean( freq.(field2use)( :, :, alphaStart:alphaEnd), 3 ) )';
@@ -232,7 +230,7 @@ end
 artefactdef.badPartsMatrix = unique([ badTrials badChannels ], 'rows');
 
 artefactdef.badTrials = unique(badTrials);
-artefactdef.goodTrials = 1:size(artefactdef.kurtLevels,2);
+artefactdef.goodTrials = 1:length(data.trial);
 artefactdef.goodTrials(ismember(artefactdef.goodTrials, artefactdef.badTrials)) = [];
 
 artefactdef.pBadTrialsPerChannel = ceil(((hist(artefactdef.badPartsMatrix(:,2), 1:length(data.label)))./length(data.trial)) .* 100);

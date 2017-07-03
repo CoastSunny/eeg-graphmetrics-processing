@@ -1,5 +1,5 @@
 function [ data, subjectdata ] = bv_preprocResample(cfg)
-% bv_preprocResample reads-in, preprocesses (and resample) raw EEG data,
+% bv_preprocResample reads-in, preprocesses (and resamples) raw EEG data,
 % based on FT_PREPROCESSING of the fieldtrip toolbox and applies several
 % user-specified preprocessing steps to the signals. The function uses
 % subject information (stored in an individual Subject.mat file) gathered
@@ -48,7 +48,7 @@ function [ data, subjectdata ] = bv_preprocResample(cfg)
 %   cfg.trialfun        = 'string': filename of trialfun to be used for
 %                           the preprocessing (take care to add your
 %                           trialfun to your matlab path). See for example
-%                           TRIALFUN_YOUTH_3Y. If the creation of trial is
+%                           TRIALFUN_YOUTH_3Y. If the creation of trials is
 %                           unnecessary, leave empty.
 %
 % Input arguments that should be specified when resampling data
@@ -118,7 +118,7 @@ else
     if isempty(currSubject)
         error('no dataset and hdrfile given, while no currSubject is known')
     end
-    fprintf('running with subject.mat file of %s ', currSubject)
+%     fprintf('running with subject.mat file of %s ', currSubject)
     hasdata = 0;
 end
 
@@ -139,6 +139,7 @@ if ~hasdata % check whether data needs to be loaded from subject.mat file
     hdrfile = subjectdata.PATHS.HDRFILE;
     dataset = subjectdata.PATHS.DATAFILE;
    
+    fprintf('done! \n')
 end
 
 subjectdata.cfgs.(outputStr) = cfg; % save used config file in subjectdata
@@ -146,6 +147,7 @@ subjectdata.rmChannels = rmChannels'; % save possible removed channels in subjec
 
 fprintf('\t loading in data ... ')
 cfg = []; % start new cfg file for loading data
+
 % only read in EEG data (without possible removed channels)
 if ~isempty(rmChannels)
     cfg.channel = cat(2,'EEG', strcat('-',rmChannels));
@@ -156,8 +158,6 @@ end
 cfg.dataset = dataset;
 cfg.headerfile = hdrfile;
 cfg.continuous = 'yes';
-% cfg.demean = 'yes';
-% cfg.detrend = 'yes';
 evalc('data = ft_preprocessing(cfg);');
 fprintf('done! \n')
 
