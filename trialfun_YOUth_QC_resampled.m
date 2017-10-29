@@ -33,14 +33,14 @@ EVvalue(~corrTriggerLength) = [];
 EVsample(~corrTriggerLength) = [];
 
 % only select correct triggers based on cfg.triger
-triggerSocialIndx = find(EVvalue==12);
-triggerNonsocialIndx = find(EVvalue==11);
-triggerIndx = find(EVvalue==12 | EVvalue==11);
+triggerSocialIndx = find(EVvalue==129);
+triggerNonsocialIndx = find(EVvalue==139);
+triggerIndx = find(EVvalue==129 | EVvalue==139);
 
 % finding conditions
 condition = zeros(1, length(triggerIndx));
-condition(ismember(triggerIndx, triggerSocialIndx)) = 12;
-condition(ismember(triggerIndx, triggerNonsocialIndx)) = 11;
+condition(ismember(triggerIndx, triggerSocialIndx)) = 129;
+condition(ismember(triggerIndx, triggerNonsocialIndx)) = 139;
 
 % create trl
 preTrig = 0 * cfg.Fs;

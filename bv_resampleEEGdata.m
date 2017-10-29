@@ -1,4 +1,4 @@
-function [ data , oldSampleInfo ] = bv_resampleEEGdata( cfg , data )
+function [ data  ] = bv_resampleEEGdata( cfg , data )
 % bv_resampleEEGdata resamples eegdata either from disk or from memory.
 % Uses FT_RESAMPLEDATA
 %
@@ -50,18 +50,18 @@ cfg.detrend     = 'yes';
 evalc('data = ft_resampledata(cfg, data);');
 
 
-% correct poor resampling of first and last sampling indices
-sampleLine = data.trial{1}(end,:);
-incorrectResampleIndx = abs(diff(sampleLine)) > 2*2048/512;
-
-incorrectResampleIndx = [1 incorrectResampleIndx+1];
-
-for i = 1:length(incorrectResampleIndx)
-    data.trial{1}(end,incorrectResampleIndx(i)) = (incorrectResampleIndx(i)-1)*2048/512 + 1;
-end
-
-oldSampleInfo = data.trial{1}(end,:); % save resampled sampling indices for laster use.
-data.trial{1}(end,:) = []; % remove sample channel from data
-data.label(end) = [];
+% % correct poor resampling of first and last sampling indices
+% sampleLine = data.trial{1}(end,:);
+% incorrectResampleIndx = abs(diff(sampleLine)) > 2*2048/512;
+% 
+% incorrectResampleIndx = [1 incorrectResampleIndx+1];
+% 
+% for i = 1:length(incorrectResampleIndx)
+%     data.trial{1}(end,incorrectResampleIndx(i)) = (incorrectResampleIndx(i)-1)*2048/512 + 1;
+% end
+% 
+% oldSampleInfo = data.trial{1}(end,:); % save resampled sampling indices for later use.
+% data.trial{1}(end,:) = []; % remove sample channel from data
+% data.label(end) = [];
 
 fprintf('done! \n')

@@ -31,6 +31,23 @@ for iSubjects = 1:length(sDirs)
         end
     end
     
+    % check existing files
+    exfiles = dir([subjectdata.PATHS.SUBJECTDIR filesep subjectdata.subjectName '*']);
+    
+    for iFile = 1:length(exfiles)
+        cFile = exfiles(iFile).name;
+        [~, filename, ext] = fileparts([subjectdata.PATHS.SUBJECTDIR filesep cFile]);
+            
+        addition = strsplit(filename, '_');
+        addition = upper(addition{end});
+        
+        if strcmpi(ext, '.mat')
+            subjectdata.PATHS.(addition) = [subjectdata.PATHS.SUBJECTDIR filesep filename ext];
+            fprintf('\t %s changed \n', addition)
+        end
+        
+    end
+    
     fprintf('\t saving Subject.mat file ...')
     save([subjectFolderPath filesep 'Subject.mat'], 'subjectdata')
     fprintf('done! \n')

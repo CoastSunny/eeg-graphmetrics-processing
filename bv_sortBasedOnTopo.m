@@ -22,6 +22,7 @@ evalc('lay = ft_prepare_layout(cfg);'); % get standard channel sort, use evalc t
 
 % sort current dataset based on standard
 [~, indxSort] = ismember(lay.label, data.label);
+indxSort = indxSort(indxSort>0);
 data.label = data.label(indxSort);
 data.trial = cellfun(@(x) x(indxSort,:), data.trial, 'Un', 0);
 fprintf('done! \n')

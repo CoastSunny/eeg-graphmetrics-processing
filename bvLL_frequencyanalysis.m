@@ -10,14 +10,17 @@ if nargin < 1
     error('Please input config file')
 end
 
+
+fprintf('\t frequency analysis ... ')
 cfg = [];
 cfg.method      = 'mtmfft';
-cfg.taper       = 'hanning';
+cfg.taper       = 'dpss';
 cfg.output      = output;
-% cfg.tapsmofrq   = 0.4;
+cfg.tapsmofrq   = 1;
 cfg.foilim      = [freqrange(1) freqrange(2)];
 cfg.keeptrials  = 'yes';
-freq = ft_freqanalysis(cfg, data);
+evalc('freq = ft_freqanalysis(cfg, data);');
+fprintf('done! \n')
 
 
 

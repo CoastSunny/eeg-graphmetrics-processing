@@ -174,11 +174,12 @@ cfg = [];
 cfg.channel  = connectivity.label;
 cfg.layout   = 'EEG1010';
 cfg.feedback = 'no';
-cfg.skipcomnt  = 'yes';
-cfg.skipscale  = 'yes';
+cfg.skipcomnt   = 'yes';
+cfg.skipscale   = 'yes';
 evalc('lay = ft_prepare_layout(cfg);');
 
 [~, indxSort] = ismember(lay.label, connectivity.label);
+indxSort = indxSort(any(indxSort,2));
 
 currSpctrm = currSpctrm(indxSort, indxSort,:);
 connectivity.label = connectivity.label(indxSort);

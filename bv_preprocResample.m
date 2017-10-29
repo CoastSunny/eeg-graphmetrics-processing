@@ -177,7 +177,7 @@ if ~isempty(resampleFs)
     cfg = [];
     cfg.resampleFs = resampleFs;
     
-    [ data , oldSampleInfo ] = bv_resampleEEGdata( cfg , data );
+    [ data  ] = bv_resampleEEGdata( cfg , data );
     
     analysisOrd = [analysisOrd, 'res']; % managing analysis order to be saved later
     
@@ -215,7 +215,11 @@ if ~isempty(trialfun)
     cfg.headerfile = hdrfile;
     cfg.trialfun = trialfun;
     cfg.Fs = resampleFs;
-    cfg.oldsampledata = oldSampleInfo;
+%     if ~isempty(resampleFs)
+%         cfg.oldsampledata = oldSampleInfo;
+%     end
+    cfg.trialdef.prestim = -0.2;
+    cfg.trialdef.poststim = 0.8;
     evalc('cfg = ft_definetrial(cfg)');
     evalc('data = ft_redefinetrial(cfg, data);');
     

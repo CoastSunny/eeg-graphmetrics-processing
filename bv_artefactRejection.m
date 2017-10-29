@@ -47,15 +47,24 @@ if nargin < 2
     subjectdata.cfgs.(outputStr) = cfg;
 end
 
+redefineTrial = true;
+if data.trial{1}/data.fsample < 10
+    redefineTrial = false;
+end
+
 output = 'pow';
 oldData = data;
 
-fprintf('\t redefining triallength to %s seconds ... ', num2str(triallength))
-cfg = [];
-cfg.length = triallength;
-cfg.overlap = 0;
-evalc('data = ft_redefinetrial(cfg, oldData);');
-fprintf('done! \n')
+if redefineTrial
+    fprintf('\t redefining triallength to %s seconds ... ', num2str(triallength))
+    cfg = [];
+    cfg.length = triallength;
+    cfg.overlap = 0;
+    evalc('data = ft_redefinetrial(cfg, oldData);');
+    fprintf('done! \n')
+else
+    fprintf('\t trials already present, no redefining necessary \n')
+end
 
 fprintf('\t artefact calculation \n')
 fprintf('\t\t frequency calculation ... ')
@@ -141,7 +150,7 @@ end
 
 badTrialsPerChannel = hist(artefactdef.badPartsMatrix(:,2),1:length(data.label));
 pBadTrials = badTrialsPerChannel / length(data.trial);
-chans2remove = data.label(pBadTrials > 0.5);
+chans2remove = data.label(pBadTrials > 0.4);
 
 if ~length(chans2remove) == 0
     fprintf(['\t channels to remove: ' repmat('%s ', 1, length(chans2remove)) '... \n'], chans2remove{:}) 
@@ -188,10 +197,14 @@ if ~length(chans2remove) == 0
         if strcmpi(showFigures, 'yes');
             fprintf('\t showing cleaned frequency spectrum ... ')
             
-            cfg = [];
-            cfg.length  = 5;
-            cfg.overlap = 0;
-            evalc('dataCut = ft_redefinetrial(cfg, data);');
+            if redefineTrial
+                cfg = [];
+                cfg.length  = 5;
+                cfg.overlap = 0;
+                evalc('dataCut = ft_redefinetrial(cfg, data);');
+            else
+                dataCut = data;
+            end
             
             evalc('freq = bvLL_frequencyanalysis(dataCut, freqrange,output);');
             

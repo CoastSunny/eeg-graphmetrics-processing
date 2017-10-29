@@ -66,37 +66,51 @@ removeIdx = 0;
 for subjIndex = 1:length(uniqueSubjectNames);
     
     currSubjectName = uniqueSubjectNames{subjIndex}; % find current subject name
-    paths2SubjectFolder = [PATHS.SUBJECTS filesep currSubjectName]; % create a path to current subject folder
-    if ~exist(paths2SubjectFolder,'dir')
-        mkdir(paths2SubjectFolder); % create, if necessary, individual subject folder
-    end
-    
-    subjectdata.subjectName = currSubjectName;
-    disp(subjectdata.subjectName)
-    
-    subjectdata.PATHS.SUBJECTDIR = [PATHS.SUBJECTS filesep subjectdata.subjectName]; % save path to subject folder in subjectdata
-    
     
     switch OPTIONS.dataType % find raw EEG files (can be 'bdf' or 'eeg' datatype')
         case 'eeg'
-            dataFile = dir([PATHS.RAWS filesep uniqueFileNames{subjIndex}  '*.eeg']); 
-            hdrFile = dir([PATHS.RAWS filesep uniqueFileNames{subjIndex}  '*.vhdr']);
-    
-        case 'bdf'
-            dataFile = dir([PATHS.RAWS filesep uniqueFileNames{subjIndex}  '*.bdf']);
-            hdrFile = dir([PATHS.RAWS filesep uniqueFileNames{subjIndex}  '*.bdf']);
-    end
+            dataFile = dir([PATHS.RAWS filesep currSubjectName  '*.eeg']);
+            hdrFile = dir([PATHS.RAWS filesep currSubjectName  '*.vhdr']);
             
-    subjectdata.PATHS.DATAFILE = [PATHS.RAWS filesep dataFile.name]; % save both dataset and hdrfile to subjectdata structures
-    subjectdata.PATHS.HDRFILE = [PATHS.RAWS filesep hdrFile.name];
-    [~, subjectdata.filename, ~] = fileparts(subjectdata.PATHS.DATAFILE);
+        case 'bdf'
+            dataFiles = dir([PATHS.RAWS filesep currSubjectName  '*.bdf']);
+            hdrFiles = dir([PATHS.RAWS filesep currSubjectName  '*.bdf']);
+    end
     
-    subjectdata.date = date;
+        
+    if length(dataFiles) ~= length(hdrFiles)
+        error('More datafiles (%s) than hdrfiles (%s) found', num2str(length(dataFiles)), num2str(length(hdrFiles)))
+    end
     
-    fprintf('\t saving Subject.mat...')
-    save([subjectdata.PATHS.SUBJECTDIR filesep 'Subject'],'subjectdata'); % save individual subjectdata structure to individual folder
-    fprintf('done \n')
-    clear subjectdata
+    for iFile = 1:length(dataFiles)
+        
+        if iFile == 1
+            cSubjectName = currSubjectName;
+        else
+            cSubjectName = [currSubjectName '_' num2str(iFile-1)];
+        end
+       
+        paths2SubjectFolder = [PATHS.SUBJECTS filesep cSubjectName]; % create a path to current subject folder
+        if ~exist(paths2SubjectFolder,'dir')
+            mkdir(paths2SubjectFolder); % create, if necessary, individual subject folder
+        end
+        
+        subjectdata.subjectName = cSubjectName;
+        disp(subjectdata.subjectName)
+        
+        subjectdata.PATHS.SUBJECTDIR = [PATHS.SUBJECTS filesep subjectdata.subjectName]; % save path to subject folder in subjectdata
+        
+        subjectdata.PATHS.DATAFILE = [PATHS.RAWS filesep dataFiles(iFile).name]; % save both dataset and hdrfile to subjectdata structures
+        subjectdata.PATHS.HDRFILE = [PATHS.RAWS filesep hdrFiles(iFile).name];
+        [~, subjectdata.filename, ~] = fileparts(subjectdata.PATHS.DATAFILE);
+        
+        subjectdata.date = date;
+        
+        fprintf('\t saving Subject.mat...')
+        save([subjectdata.PATHS.SUBJECTDIR filesep 'Subject'],'subjectdata'); % save individual subjectdata structure to individual folder
+        fprintf('done \n')
+        clear subjectdata
+    end
 
 end
 
