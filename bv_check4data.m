@@ -11,9 +11,9 @@ end
 
 for i = 1:nArgs
     try
-        [~, filename, ext] = fileparts(subjectdata.PATHS.(varargin{i}));
+        [~, filename, ext] = fileparts(subjectdata.PATHS.(upper(varargin{i})));
         fprintf('\t loading %s%s ... ', filename, ext) 
-        output = load(subjectdata.PATHS.(varargin{i}));
+        output = load(subjectdata.PATHS.(upper(varargin{i})));
         fprintf('done! \n')
         fields = fieldnames(output);
         eval('varargout{i} = output.(fields{1});');
